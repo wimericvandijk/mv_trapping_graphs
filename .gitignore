@@ -1,0 +1,27 @@
+# Environment variables
+.env
+.env.local
+
+# Secrets
+*.key
+*.secret
+config/secrets.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Raw source data
+data/raw/
+
+# Optional: published outputs
+data/published/

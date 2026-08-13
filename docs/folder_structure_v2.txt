@@ -1,0 +1,64 @@
+trap-dashboard/
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+│
+├── data/
+│   ├── raw/
+│   │   ├── 2020.csv
+│   │   ├── 2021.csv
+│   │   ├── ...
+│   │   └── 2026.csv
+│   │
+│   ├── processed/
+│   │   ├── all_catches.parquet
+│   │   ├── traplines.parquet
+│   │   └── species.parquet
+│   │
+│   └── published/
+│       ├── weekly.json
+│       ├── yearly.json
+│       ├── species.json
+│       └── metadata.json
+│
+├── scripts/
+│   ├── import/
+│   │   ├── load_csv_files.py
+│   │   └── load_trapnz_api.py
+│   │
+│   ├── transform/
+│   │   ├── clean_data.py
+│   │   ├── build_weekly_summary.py
+│   │   ├── build_species_summary.py
+│   │   └── build_trapline_summary.py
+│   │
+│   └── publish/
+│       └── build_site_data.py
+│
+├── site/
+│   ├── index.html
+│   ├── style.css
+│   ├── app.js
+│   │
+│   ├── data/
+│   │   ├── weekly.json
+│   │   ├── yearly.json
+│   │   └── species.json
+│   │
+│   └── assets/
+│       ├── logo.png
+│       └── photos/
+│
+├── config/
+│   ├── species_mapping.json
+│   └── trapline_config.json
+│
+├── notebooks/
+│   ├── exploratory_analysis.ipynb
+│   └── rebait_analysis.ipynb
+│
+└── .github/
+    └── workflows/
+        ├── nightly_update.yml
+        └── validate_data.yml

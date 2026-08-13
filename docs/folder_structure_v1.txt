@@ -1,0 +1,28 @@
+trap-dashboard/
+│
+├── data/
+│   ├── raw/
+│   │   ├── 2020.csv
+│   │   ├── 2021.csv
+│   │   └── ...
+│   │
+│   └── published/
+│       ├── weekly.json
+│       ├── species.json
+│       └── yearly.json
+│
+├── scripts/
+│   ├── build_summaries.py
+│   └── update_from_trapnz.py
+│
+├── site/
+│   ├── index.html
+│   ├── app.js
+│   └── style.css
+│
+├── config/
+│   └── species_mapping.json
+│
+└── .github/
+    └── workflows/
+        └── nightly_update.yml
