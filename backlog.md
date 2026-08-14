@@ -44,6 +44,7 @@ This file tracks the current plan for the trapping dashboard project.
 ## Notes
 
 - The Word planning document is in `docs/Trapping_Dashboard_Project_Summary_v2.docx`.
+- Current review URL: `https://wimericvandijk.github.io/mv_trapping_graphs/`
 - The current implementation is ahead of the original plan in one area: the cleansing rules and invalid-record review flow are already in place.
 - The biggest missing pieces are now dashboard polish and the next layer of analytics rather than the initial data publish or page scaffold.
 - The publish layer should use annual cleaned CSV files as input; `all_data.csv` is a convenience output rather than the preferred working source.

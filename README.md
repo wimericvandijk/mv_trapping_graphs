@@ -70,6 +70,12 @@ python scripts/publish/publish_to_json.py
 powershell -ExecutionPolicy Bypass -File scripts/publish/run_dashboard_server.ps1
 ```
 
+## Review URL
+
+The current external review build is available at:
+
+- `https://wimericvandijk.github.io/mv_trapping_graphs/`
+
 ## Intended Direction
 
 The target architecture remains a static public website, hosted on GitHub Pages, with scheduled data refreshes via GitHub Actions and browser-based charts reading published summary data.
