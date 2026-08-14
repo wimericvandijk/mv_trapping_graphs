@@ -17,21 +17,20 @@ This file tracks the current plan for the trapping dashboard project.
 - A first dashboard page now exists in `site`.
 - The all-years comparison chart supports year toggles and expand or close behavior.
 - Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
+- The current dashboard layout, chart expansion behavior, and trend logic are good enough for review.
 
 ## Next
 
-1. Refine dashboard layout, labeling, and chart readability.
-2. Improve expanded-chart behavior and overlay ergonomics.
-3. Refine published JSON semantics where needed, especially trend calculations and chart payload shape.
-4. Decide whether more dashboard state should be persisted across interactions.
-5. Add operational views once trap-line level summaries exist.
+1. Review and collect feedback on the current dashboard slice.
+2. Investigate how much dashboard state should be persisted across interactions.
+3. Add operational views once trap-line level summaries exist.
 
 ## After That
 
-1. Investigate Trap.NZ API authentication and limits.
-2. Replace or complement CSV ingestion with automated API ingestion.
-3. Add GitHub Actions for scheduled nightly processing.
-4. Publish generated site data into `site/data`.
+1. Use the working examples in `config/secrets.json` as the starting point for Trap.NZ API integration.
+2. Optimise those API calls for regular scheduled use.
+3. Replace or complement CSV ingestion with automated API ingestion.
+4. Add GitHub Actions for scheduled nightly processing.
 5. Prepare GitHub Pages hosting flow.
 
 ## Later Analytics
@@ -48,3 +47,4 @@ This file tracks the current plan for the trapping dashboard project.
 - The current implementation is ahead of the original plan in one area: the cleansing rules and invalid-record review flow are already in place.
 - The biggest missing pieces are now dashboard polish and the next layer of analytics rather than the initial data publish or page scaffold.
 - The publish layer should use annual cleaned CSV files as input; `all_data.csv` is a convenience output rather than the preferred working source.
+- `site/data` is already the publish target for generated dashboard JSON. Parquet belongs to the later processed-data layer, not this publish target.
