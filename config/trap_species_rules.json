@@ -1,0 +1,90 @@
+{
+  "species_collections": {
+    "Rat": [
+      "Rat",
+      "Rat - Ship",
+      "Rat - Norway",
+      "Rat - Kiore"
+    ],
+    "Mustelid": [
+      "Stoat",
+      "Weasel",
+      "Ferret"
+    ]
+  },
+  "restricted_species": [
+    "Rat",
+    "Mouse",
+    "Possum",
+    "Mustelid"
+  ],
+  "trap_type_allowed_species": {
+    "Victor": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "Rat trap": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "D-Rat": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "T-Rex Rat Trap": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "DOC 200": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "DOC 150": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "Trapinator": [
+      "Possum"
+    ],
+    "A24": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "AT220": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "A12": [
+      "Rat",
+      "Mouse",
+      "Mustelid"
+    ],
+    "Possum Master": [
+      "Possum"
+    ],
+    "Timms": [
+      "Possum"
+    ],
+    "SA Cat": [],
+    "Sentinel": [
+      "Rat",
+      "Mouse",
+      "Possum",
+      "Mustelid"
+    ],
+    "BT 200": [
+      "Rat",
+      "Mouse",
+      "Possum",
+      "Mustelid"
+    ]
+  }
+}

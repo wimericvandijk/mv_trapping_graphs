@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "periods": {
+    "last_6_months": {
+      "species_totals": {
+        "Rat": 409,
+        "Mouse": 563,
+        "Possum": 143,
+        "Mustelid": 16,
+        "All Species": 1153
+      },
+      "trend": {
+        "Rat": {
+          "direction": "up",
+          "delta": 186
+        },
+        "Mouse": {
+          "direction": "up",
+          "delta": 143
+        },
+        "Possum": {
+          "direction": "up",
+          "delta": 44
+        },
+        "Mustelid": {
+          "direction": "up",
+          "delta": 7
+        },
+        "All Species": {
+          "direction": "up",
+          "delta": 393
+        }
+      }
+    },
+    "2019": {
+      "species_totals": {
+        "Rat": 38,
+        "Mouse": 11,
+        "Possum": 7,
+        "Mustelid": 0,
+        "All Species": 56
+      }
+    },
+    "2020": {
+      "species_totals": {
+        "Rat": 263,
+        "Mouse": 802,
+        "Possum": 115,
+        "Mustelid": 22,
+        "All Species": 1204
+      }
+    },
+    "2021": {
+      "species_totals": {
+        "Rat": 317,
+        "Mouse": 544,
+        "Possum": 126,
+        "Mustelid": 10,
+        "All Species": 1003
+      }
+    },
+    "2022": {
+      "species_totals": {
+        "Rat": 443,
+        "Mouse": 712,
+        "Possum": 141,
+        "Mustelid": 14,
+        "All Species": 1317
+      }
+    },
+    "2023": {
+      "species_totals": {
+        "Rat": 612,
+        "Mouse": 975,
+        "Possum": 165,
+        "Mustelid": 20,
+        "All Species": 1782
+      }
+    },
+    "2024": {
+      "species_totals": {
+        "Rat": 657,
+        "Mouse": 1093,
+        "Possum": 267,
+        "Mustelid": 27,
+        "All Species": 2070
+      }
+    },
+    "2025": {
+      "species_totals": {
+        "Rat": 679,
+        "Mouse": 688,
+        "Possum": 257,
+        "Mustelid": 19,
+        "All Species": 1660
+      }
+    },
+    "2026": {
+      "species_totals": {
+        "Rat": 483,
+        "Mouse": 595,
+        "Possum": 167,
+        "Mustelid": 18,
+        "All Species": 1289
+      }
+    }
+  }
+}
