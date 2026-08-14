@@ -281,8 +281,9 @@ def trim_trailing_zero_weeks(year_series):
 def build_summary_json(publish_data):
     max_date = publish_data["last_date"]
     current_start = shift_months(max_date, -6)
-    previous_end = current_start.fromordinal(current_start.toordinal() - 1)
-    previous_start = shift_months(previous_end, -6)
+    previous_start = shift_months(current_start, -12)
+    previous_end = shift_months(max_date, -12)
+    latest_year = publish_data["last_date"].year
 
     periods = {}
     current_totals = get_period_totals(publish_data["dated_rows"], current_start, max_date)
@@ -290,14 +291,56 @@ def build_summary_json(publish_data):
     periods["last_6_months"] = {
         "species_totals": current_totals,
         "trend": get_trend(current_totals, previous_totals),
+        "trend_context": {
+            "current_period": {
+                "start": current_start.isoformat(),
+                "end": max_date.isoformat(),
+                "species_totals": current_totals,
+            },
+            "previous_period": {
+                "start": previous_start.isoformat(),
+                "end": previous_end.isoformat(),
+                "species_totals": previous_totals,
+            },
+        },
     }
 
     for year in publish_data["years"]:
         year_start = date(year, 1, 1)
         year_end = date(year, 12, 31)
+        year_totals = get_period_totals(publish_data["dated_rows"], year_start, year_end)
         periods[str(year)] = {
-            "species_totals": get_period_totals(publish_data["dated_rows"], year_start, year_end),
+            "species_totals": year_totals,
         }
+        previous_year = year - 1
+        if previous_year in publish_data["years"]:
+            previous_year_start = date(previous_year, 1, 1)
+            if year == latest_year:
+                previous_year_end = shift_months(publish_data["last_date"], -12)
+                current_year_end = publish_data["last_date"]
+            else:
+                previous_year_end = date(previous_year, 12, 31)
+                current_year_end = year_end
+            previous_year_totals = get_period_totals(
+                publish_data["dated_rows"], previous_year_start, previous_year_end
+            )
+            current_year_totals = get_period_totals(
+                publish_data["dated_rows"], year_start, current_year_end
+            )
+            periods[str(year)]["species_totals"] = current_year_totals
+            periods[str(year)]["trend"] = get_trend(current_year_totals, previous_year_totals)
+            periods[str(year)]["trend_context"] = {
+                "current_period": {
+                    "start": year_start.isoformat(),
+                    "end": current_year_end.isoformat(),
+                    "species_totals": current_year_totals,
+                },
+                "previous_period": {
+                    "start": previous_year_start.isoformat(),
+                    "end": previous_year_end.isoformat(),
+                    "species_totals": previous_year_totals,
+                },
+            }
 
     return {
         "schema_version": SCHEMA_VERSION,

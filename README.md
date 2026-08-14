@@ -16,6 +16,7 @@ The project currently has a working transform and publish pipeline.
 - Loads trap/species validation policy from `config/trap_species_rules.json`.
 - Publishes dashboard JSON files into `site/data` from the annual cleaned CSV files.
 - Reuses a shared script logging helper across script entry points.
+- Includes a working static dashboard in `site` with species navigation, period selection, weekly bars, all-years comparison lines, and chart expand or close controls.
 
 ## Current Outputs
 
@@ -40,9 +41,9 @@ The main outputs from `scripts/publish/publish_to_json.py` are:
 
 ## Current Project State
 
-The data-cleaning, annualisation, and first JSON publish stage are working.
+The data-cleaning, annualisation, JSON publish stage, and first dashboard UI are working.
 
-The next major step is to build the first proof-of-concept dashboard page in `site` against the published JSON files.
+The next major step is to refine dashboard behavior, visual polish, and analytics semantics rather than to create the first page from scratch.
 
 ## Main Files
 
@@ -51,6 +52,9 @@ The next major step is to build the first proof-of-concept dashboard page in `si
 - `scripts/transform/domain_constants.py`: canonical species and trap type names shared by Python scripts
 - `scripts/publish/publish_to_json.py`: site JSON publisher from annual cleaned CSV files
 - `scripts/script_logging.py`: shared logging setup used by script entry points
+- `site/index.html`: dashboard structure
+- `site/style.css`: dashboard styling
+- `site/app.js`: dashboard client-side behavior and chart rendering
 - `config/trap_species_rules.json`: trap/species policy rules
 - `config/README.md`: explanation of the rules file
 - `docs/site_data_formats.md`: JSON contract for the published site data
@@ -63,6 +67,7 @@ From the repository root:
 ```powershell
 python scripts/transform/annualise_csv.py
 python scripts/publish/publish_to_json.py
+powershell -ExecutionPolicy Bypass -File scripts/publish/run_dashboard_server.ps1
 ```
 
 ## Intended Direction

@@ -14,55 +14,48 @@
 <body>
   <div class="page-shell">
     <header class="hero">
-      <div class="hero-copy">
+      <div class="hero-copy card">
         <p class="eyebrow">Marsden Valley Trapping Group</p>
-        <h1>Public trapping trends, cleaned and published from Trap.NZ records.</h1>
-        <p class="hero-text">
-          First proof-of-concept dashboard showing weekly catches, all-years comparisons, and summary metrics
-          from the current published dataset.
-        </p>
-      </div>
-      <div class="hero-meta card">
-        <p class="meta-label">Dataset</p>
-        <p id="dataset-range" class="meta-value">Loading...</p>
-        <p id="dataset-generated" class="meta-footnote"></p>
+        <h1 id="hero-title">Trapping trends</h1>
+        <p id="hero-published" class="hero-text">Published</p>
       </div>
     </header>
 
     <main class="dashboard-grid">
-      <section class="controls card card-accent">
+      <aside class="dashboard-nav card card-accent">
         <div>
-          <p class="section-label">Filters</p>
-          <h2>Choose a species and time window</h2>
+          <p class="section-label">Navigation</p>
+          <h2>Choose a species</h2>
         </div>
-        <div class="control-row">
-          <label>
-            <span>Species</span>
-            <select id="species-select"></select>
-          </label>
-          <label>
-            <span>Period</span>
-            <select id="period-select"></select>
-          </label>
-        </div>
-      </section>
+        <section class="nav-section">
+          <p class="nav-label">Species</p>
+          <div id="species-radio-group" class="species-radio-group" aria-label="Choose species"></div>
+        </section>
+      </aside>
 
-      <section class="summary-panel">
-        <article class="card metric-card">
-          <p class="section-label">Selected period</p>
-          <h3 id="total-catches">0</h3>
-          <p id="total-caption" class="metric-caption">Total catches</p>
-        </article>
-        <article class="card metric-card">
-          <p class="section-label">Trend</p>
-          <h3 id="trend-delta">0</h3>
-          <p id="trend-caption" class="metric-caption">Compared with previous period</p>
-        </article>
-        <article class="card metric-card">
-          <p class="section-label">Peak week</p>
-          <h3 id="peak-week-total">0</h3>
-          <p id="peak-week-caption" class="metric-caption">Best week in selected period</p>
-        </article>
+      <div class="dashboard-content">
+      <section class="card summary-table-card">
+        <div class="summary-table-header">
+          <p class="section-label">Summary</p>
+          <p id="summary-period-label" class="metric-caption">Last 6 months</p>
+        </div>
+        <div class="summary-table-grid" role="table" aria-label="Selected period summary">
+          <div class="summary-cell" role="row">
+            <p class="section-label">Selected period</p>
+            <h3 id="total-catches">0</h3>
+            <p id="total-caption" class="metric-caption">Total catches</p>
+          </div>
+          <div class="summary-cell" role="row">
+            <p class="section-label">Trend</p>
+            <h3 id="trend-delta">0</h3>
+            <p id="trend-caption" class="metric-caption">Compared with previous period</p>
+          </div>
+          <div class="summary-cell" role="row">
+            <p class="section-label">Peak week</p>
+            <h3 id="peak-week-total">0</h3>
+            <p id="peak-week-caption" class="metric-caption">Best week in selected period</p>
+          </div>
+        </div>
       </section>
 
       <section class="card chart-card chart-wide">
@@ -71,9 +64,16 @@
             <p class="section-label">Weekly catches</p>
             <h2 id="weekly-title">Last 6 months</h2>
           </div>
-          <p id="weekly-subtitle" class="chart-subtitle"></p>
+          <div class="chart-actions">
+            <label class="period-control">
+              <span>Period</span>
+              <select id="period-select"></select>
+            </label>
+            <p id="weekly-subtitle" class="chart-subtitle"></p>
+            <button class="chart-expand-button" type="button" data-chart-target="weekly-panel">Expand</button>
+          </div>
         </div>
-        <div class="chart-frame">
+        <div class="chart-frame" id="weekly-panel">
           <canvas id="weekly-chart"></canvas>
         </div>
       </section>
@@ -84,16 +84,45 @@
             <p class="section-label">Same species, all years</p>
             <h2 id="comparison-title">Seasonal comparison</h2>
           </div>
-          <p class="chart-subtitle">Weekly shape with monthly date markers</p>
+          <div class="chart-actions">
+            <p class="chart-subtitle">Weekly shape with monthly date markers</p>
+            <button class="chart-expand-button" type="button" data-chart-target="comparison-panel">Expand</button>
+          </div>
         </div>
         <div class="comparison-toolbar">
           <div id="year-toggle-group" class="year-toggle-group" aria-label="Choose years to compare"></div>
         </div>
-        <div class="chart-frame">
+        <div class="chart-frame" id="comparison-panel">
           <canvas id="comparison-chart"></canvas>
         </div>
       </section>
+      </div>
     </main>
+  </div>
+
+  <div id="chart-overlay" class="chart-overlay" hidden>
+    <div class="chart-overlay-backdrop" data-close-overlay="true"></div>
+    <section class="chart-overlay-panel card">
+      <div class="chart-overlay-header">
+        <div>
+          <p class="section-label">Expanded chart</p>
+          <h2 id="overlay-title">Chart</h2>
+        </div>
+        <div class="overlay-actions">
+          <button id="overlay-close" class="chart-expand-button" type="button">Close</button>
+        </div>
+      </div>
+      <div id="overlay-weekly-toolbar" class="overlay-toolbar" hidden>
+        <label class="period-control">
+          <span>Period</span>
+          <select id="overlay-period-select"></select>
+        </label>
+      </div>
+      <div id="overlay-comparison-toolbar" class="comparison-toolbar overlay-comparison-toolbar" hidden>
+        <div id="overlay-year-toggle-group" class="year-toggle-group" aria-label="Choose years to compare in expanded view"></div>
+      </div>
+      <div id="overlay-chart-host" class="chart-overlay-host"></div>
+    </section>
   </div>
 </body>
 </html>

@@ -14,6 +14,8 @@ const state = {
   yearColors: {},
   weeklyChart: null,
   comparisonChart: null,
+  expandedChartId: null,
+  expandedChartParent: null,
 };
 
 const YEAR_PALETTE = [
@@ -40,6 +42,16 @@ function formatFriendlyDate(dateString) {
     year: "numeric",
     month: "short",
     day: "numeric",
+  });
+}
+
+function formatFriendlyDateTime(dateString) {
+  return new Date(dateString).toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -104,13 +116,14 @@ function updateSummaryCards(species, periodKey, weeks) {
   const total = periodSummary ? periodSummary.species_totals[species] || 0 : 0;
   const trend = periodSummary && periodSummary.trend ? periodSummary.trend[species] : null;
   const peakWeek = getPeakWeek(weeks, species);
+  document.getElementById("summary-period-label").textContent = formatPeriodLabel(periodKey);
 
   document.getElementById("total-catches").textContent = total.toLocaleString();
   document.getElementById("total-caption").textContent = `${species} catches in ${formatPeriodLabel(periodKey).toLowerCase()}`;
 
   document.getElementById("trend-delta").textContent = trend ? `${trend.delta > 0 ? "+" : ""}${trend.delta}` : "-";
   document.getElementById("trend-caption").textContent = trend
-    ? `${trend.direction} versus previous equivalent period`
+    ? `${trend.direction} versus the same period 1 year prior`
     : "Trend not available for this period";
 
   document.getElementById("peak-week-total").textContent = peakWeek ? peakWeek.value.toLocaleString() : "0";
@@ -161,12 +174,17 @@ function buildWeeklyChart(species, weeks, periodKey) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          bottom: 10,
+        },
+      },
       plugins: {
         legend: { display: false },
       },
       scales: {
         x: {
-          ticks: { color: AXIS_TICK_COLOR, maxRotation: 0, autoSkip: true, maxTicksLimit: 8, padding: 10 },
+          ticks: { color: AXIS_TICK_COLOR, maxRotation: 0, autoSkip: true, maxTicksLimit: 8, padding: 14 },
           border: { color: GRID_COLOR },
           grid: { display: false },
         },
@@ -282,28 +300,33 @@ function getDefaultSelectedYears() {
 }
 
 function renderYearButtons() {
-  const container = document.getElementById("year-toggle-group");
+  const containers = [
+    document.getElementById("year-toggle-group"),
+    document.getElementById("overlay-year-toggle-group"),
+  ].filter(Boolean);
   const years = getAvailableYears();
-  container.innerHTML = "";
+  containers.forEach((container) => {
+    container.innerHTML = "";
 
-  years.forEach((year) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `year-toggle${state.selectedYears.includes(year) ? " is-active" : ""}`;
-    button.textContent = year;
-    button.setAttribute("aria-pressed", state.selectedYears.includes(year) ? "true" : "false");
-    button.addEventListener("click", () => {
-      const isSelected = state.selectedYears.includes(year);
-      if (isSelected && state.selectedYears.length === 1) {
-        return;
-      }
-      state.selectedYears = isSelected
-        ? state.selectedYears.filter((value) => value !== year)
-        : [...state.selectedYears, year].sort();
-      renderYearButtons();
-      buildComparisonChart(state.selectedSpecies);
+    years.forEach((year) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `year-toggle${state.selectedYears.includes(year) ? " is-active" : ""}`;
+      button.textContent = year;
+      button.setAttribute("aria-pressed", state.selectedYears.includes(year) ? "true" : "false");
+      button.addEventListener("click", () => {
+        const isSelected = state.selectedYears.includes(year);
+        if (isSelected && state.selectedYears.length === 1) {
+          return;
+        }
+        state.selectedYears = isSelected
+          ? state.selectedYears.filter((value) => value !== year)
+          : [...state.selectedYears, year].sort();
+        renderYearButtons();
+        buildComparisonChart(state.selectedSpecies);
+      });
+      container.appendChild(button);
     });
-    container.appendChild(button);
   });
 }
 
@@ -327,48 +350,163 @@ function renderDashboard() {
   buildComparisonChart(species);
 }
 
-function populateFilters() {
-  const speciesSelect = document.getElementById("species-select");
-  const periodSelect = document.getElementById("period-select");
+function openChartOverlay(chartId) {
+  const chartFrame = document.getElementById(chartId);
+  const overlay = document.getElementById("chart-overlay");
+  const overlayHost = document.getElementById("overlay-chart-host");
+  const overlayTitle = document.getElementById("overlay-title");
+  const overlayWeeklyToolbar = document.getElementById("overlay-weekly-toolbar");
+  const overlayComparisonToolbar = document.getElementById("overlay-comparison-toolbar");
+  if (!chartFrame || !overlay || !overlayHost) {
+    return;
+  }
 
-  speciesSelect.innerHTML = "";
-  state.metadata.species.forEach((species) => {
-    const option = document.createElement("option");
-    option.value = species;
-    option.textContent = species;
-    if (species === state.metadata.defaults.species) {
-      option.selected = true;
+  state.expandedChartId = chartId;
+  state.expandedChartParent = chartFrame.parentElement;
+  overlayTitle.textContent = chartId === "weekly-panel" ? document.getElementById("weekly-title").textContent : document.getElementById("comparison-title").textContent;
+  if (overlayWeeklyToolbar) {
+    overlayWeeklyToolbar.hidden = chartId !== "weekly-panel";
+  }
+  if (overlayComparisonToolbar) {
+    overlayComparisonToolbar.hidden = chartId !== "comparison-panel";
+  }
+  overlay.hidden = false;
+  overlayHost.appendChild(chartFrame);
+  chartFrame.classList.add("is-expanded");
+  renderYearButtons();
+  if (state.weeklyChart) {
+    state.weeklyChart.resize();
+  }
+  if (state.comparisonChart) {
+    state.comparisonChart.resize();
+  }
+}
+
+function closeChartOverlay() {
+  const overlay = document.getElementById("chart-overlay");
+  const overlayWeeklyToolbar = document.getElementById("overlay-weekly-toolbar");
+  const overlayComparisonToolbar = document.getElementById("overlay-comparison-toolbar");
+  if (!state.expandedChartId || !state.expandedChartParent || !overlay) {
+    return;
+  }
+
+  const chartFrame = document.getElementById(state.expandedChartId);
+  state.expandedChartParent.appendChild(chartFrame);
+  chartFrame.classList.remove("is-expanded");
+  overlay.hidden = true;
+  if (overlayWeeklyToolbar) {
+    overlayWeeklyToolbar.hidden = true;
+  }
+  if (overlayComparisonToolbar) {
+    overlayComparisonToolbar.hidden = true;
+  }
+  state.expandedChartId = null;
+  state.expandedChartParent = null;
+  renderYearButtons();
+  if (state.weeklyChart) {
+    state.weeklyChart.resize();
+  }
+  if (state.comparisonChart) {
+    state.comparisonChart.resize();
+  }
+}
+
+function bindChartOverlayControls() {
+  document.querySelectorAll(".chart-expand-button[data-chart-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openChartOverlay(button.dataset.chartTarget);
+    });
+  });
+
+  document.getElementById("overlay-close").addEventListener("click", closeChartOverlay);
+  document.querySelector("[data-close-overlay='true']").addEventListener("click", closeChartOverlay);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeChartOverlay();
     }
-    speciesSelect.appendChild(option);
-  });
-
-  periodSelect.innerHTML = "";
-  getPeriodOptions(state.metadata).forEach((periodKey) => {
-    const option = document.createElement("option");
-    option.value = periodKey;
-    option.textContent = formatPeriodLabel(periodKey);
-    if (periodKey === state.metadata.defaults.period) {
-      option.selected = true;
-    }
-    periodSelect.appendChild(option);
-  });
-
-  speciesSelect.addEventListener("change", () => {
-    state.selectedSpecies = speciesSelect.value;
-    state.selectedYears = getDefaultSelectedYears();
-    renderYearButtons();
-    renderDashboard();
-  });
-
-  periodSelect.addEventListener("change", () => {
-    state.selectedPeriod = periodSelect.value;
-    renderDashboard();
   });
 }
 
+function populateFilters() {
+  const speciesGroup = document.getElementById("species-radio-group");
+  const periodSelect = document.getElementById("period-select");
+  const overlayPeriodSelect = document.getElementById("overlay-period-select");
+
+  speciesGroup.innerHTML = "";
+  state.metadata.species.forEach((species) => {
+    const label = document.createElement("label");
+    label.className = `species-option${species === state.selectedSpecies ? " is-active" : ""}`;
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "species";
+    input.value = species;
+    input.checked = species === state.selectedSpecies;
+
+    const text = document.createElement("span");
+    text.textContent = species;
+
+    input.addEventListener("change", () => {
+      if (!input.checked) {
+        return;
+      }
+      state.selectedSpecies = species;
+      populateFilters();
+      renderYearButtons();
+      renderDashboard();
+    });
+
+    label.appendChild(input);
+    label.appendChild(text);
+    speciesGroup.appendChild(label);
+  });
+
+  const periodOptions = getPeriodOptions(state.metadata);
+
+  function populatePeriodSelect(selectElement) {
+    if (!selectElement) {
+      return;
+    }
+    selectElement.innerHTML = "";
+    periodOptions.forEach((periodKey) => {
+      const option = document.createElement("option");
+      option.value = periodKey;
+      option.textContent = formatPeriodLabel(periodKey);
+      if (periodKey === state.selectedPeriod) {
+        option.selected = true;
+      }
+      selectElement.appendChild(option);
+    });
+  }
+
+  populatePeriodSelect(periodSelect);
+  populatePeriodSelect(overlayPeriodSelect);
+
+  function handlePeriodChange(value) {
+    state.selectedPeriod = value;
+    if (periodSelect && periodSelect.value !== value) {
+      periodSelect.value = value;
+    }
+    if (overlayPeriodSelect && overlayPeriodSelect.value !== value) {
+      overlayPeriodSelect.value = value;
+    }
+    renderDashboard();
+  }
+
+  periodSelect.onchange = () => {
+    handlePeriodChange(periodSelect.value);
+  };
+
+  if (overlayPeriodSelect) {
+    overlayPeriodSelect.onchange = () => {
+      handlePeriodChange(overlayPeriodSelect.value);
+    };
+  }
+}
+
 function populateMeta() {
-  document.getElementById("dataset-range").textContent = `${formatFriendlyDate(state.metadata.date_range.start)} to ${formatFriendlyDate(state.metadata.date_range.end)}`;
-  document.getElementById("dataset-generated").textContent = `Published ${formatFriendlyDate(state.metadata.generated_at)}`;
+  document.getElementById("hero-title").textContent = `Trapping trends ${formatFriendlyDate(state.metadata.date_range.start)} to ${formatFriendlyDate(state.metadata.date_range.end)}`;
+  document.getElementById("hero-published").textContent = `Published ${formatFriendlyDateTime(state.metadata.generated_at)}`;
 }
 
 async function init() {
@@ -391,6 +529,7 @@ async function init() {
     populateMeta();
     populateFilters();
     renderYearButtons();
+    bindChartOverlayControls();
     renderDashboard();
   } catch (error) {
     document.body.innerHTML = `<div style="padding:24px;font-family:IBM Plex Sans,sans-serif;color:#213028;">Failed to load dashboard data: ${error.message}</div>`;

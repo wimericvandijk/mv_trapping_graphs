@@ -140,7 +140,8 @@ Format:
 
 Notes:
 - Arrays are ordered by ISO week number.
-- Missing weeks should be filled with `0` so charting is simple.
+- Missing weeks inside an observed year's range should be filled with `0`.
+- Weeks outside an observed year's range may be `null` so incomplete years stop at the last available data point instead of implying zero catches.
 - This file is intentionally chart-shaped rather than row-shaped.
 
 ## 4. summary.json
@@ -189,8 +190,10 @@ Format:
 
 Notes:
 - `last_6_months` should be the default dashboard period.
-- Trend can initially compare the selected period with the immediately previous same-length period.
-- If trend is not ready in the first publish script, the field can be omitted temporarily.
+- For `last_6_months`, trend should compare against the same 6-month season one year earlier.
+- For annual periods from 2020 onward, trend should compare against the previous calendar year.
+- For the latest incomplete year, the annual trend should compare year-to-date against the equivalent cutoff date in the prior year.
+- `trend_context` may be included to support QA or debugging, but the dashboard does not need to render it permanently.
 
 ## Species Model
 
@@ -212,6 +215,16 @@ The first publish script should target only these outputs:
 4. `summary.json`
 
 That is enough to support the first proof-of-concept dashboard without committing yet to trap-line analytics or more detailed operational views.
+
+## Current UI Notes
+
+The current dashboard implementation uses:
+
+- species radio-button navigation on the left
+- a period dropdown above the weekly chart
+- summary metrics in a compact table
+- year toggle buttons for the all-years comparison chart
+- expand or close chart overlays for both charts
 
 ## Publish Input Strategy
 

@@ -14,16 +14,17 @@ This file tracks the current plan for the trapping dashboard project.
 - Initial site JSON formats are defined in `docs/site_data_formats.md`.
 - A first site publisher now generates JSON into `site/data` from the annual cleaned CSV files.
 - Shared logging setup is extracted into `scripts/script_logging.py`.
+- A first dashboard page now exists in `site`.
+- The all-years comparison chart supports year toggles and expand or close behavior.
+- Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
 
 ## Next
 
-1. Produce the first proof-of-concept dashboard page in `site`.
-2. Implement a default last-6-month view.
-3. Add species and period or year selection.
-4. Add weekly catches for selected species and period.
-5. Add same-species all-years comparison charts.
-6. Add species totals and summary metrics.
-7. Refine published JSON semantics where needed, especially trend calculations and chart payload shape.
+1. Refine dashboard layout, labeling, and chart readability.
+2. Improve expanded-chart behavior and overlay ergonomics.
+3. Refine published JSON semantics where needed, especially trend calculations and chart payload shape.
+4. Decide whether more dashboard state should be persisted across interactions.
+5. Add operational views once trap-line level summaries exist.
 
 ## After That
 
@@ -45,5 +46,5 @@ This file tracks the current plan for the trapping dashboard project.
 
 - The Word planning document is in `docs/Trapping_Dashboard_Project_Summary_v2.docx`.
 - The current implementation is ahead of the original plan in one area: the cleansing rules and invalid-record review flow are already in place.
-- The biggest missing piece is now the dashboard UI layer rather than the data publish layer.
+- The biggest missing pieces are now dashboard polish and the next layer of analytics rather than the initial data publish or page scaffold.
 - The publish layer should use annual cleaned CSV files as input; `all_data.csv` is a convenience output rather than the preferred working source.
