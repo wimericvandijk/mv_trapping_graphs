@@ -137,6 +137,7 @@ def load_publish_data(path):
     }
     dated_rows = []
     years = set()
+    year_week_ranges = defaultdict(lambda: {"min": None, "max": None})
     first_date = None
     last_date = None
     project_name = ""
@@ -167,6 +168,11 @@ def load_publish_data(path):
                 add_species_counts(weekly_counts[week_start], species_counts)
 
                 week_index = record_day.isocalendar()[1]
+                year_week_range = year_week_ranges[record_day.year]
+                if year_week_range["min"] is None or week_index < year_week_range["min"]:
+                    year_week_range["min"] = week_index
+                if year_week_range["max"] is None or week_index > year_week_range["max"]:
+                    year_week_range["max"] = week_index
                 for species_name, value in species_counts.items():
                     yearly_week_counts[species_name][record_day.year][week_index] += value
 
@@ -181,6 +187,7 @@ def load_publish_data(path):
         "yearly_week_counts": yearly_week_counts,
         "dated_rows": dated_rows,
         "years": sorted(years),
+        "year_week_ranges": dict(year_week_ranges),
         "first_date": first_date,
         "last_date": last_date,
     }
@@ -236,18 +243,39 @@ def build_yearly_comparison_json(publish_data):
             if week_counts:
                 max_week_index = max(max_week_index, max(week_counts.keys()))
     week_index = list(range(1, max_week_index + 1))
+    latest_year = publish_data["last_date"].year
 
     series = {}
     for species_name in SITE_SPECIES:
         series[species_name] = {}
         for year in publish_data["years"]:
             week_counts = publish_data["yearly_week_counts"][species_name].get(year, {})
-            series[species_name][str(year)] = [week_counts.get(index, 0) for index in week_index]
+            week_range = publish_data["year_week_ranges"].get(year, {"min": None, "max": None})
+            min_week = week_range["min"]
+            max_week = week_range["max"]
+            year_series = [
+                week_counts.get(index, 0) if min_week is not None and min_week <= index <= max_week else None
+                for index in week_index
+            ]
+            if year == latest_year and max_week is not None:
+                year_series = trim_trailing_zero_weeks(year_series)
+            series[species_name][str(year)] = year_series
     return {
         "schema_version": SCHEMA_VERSION,
         "series": series,
         "week_index": week_index,
     }
+
+
+def trim_trailing_zero_weeks(year_series):
+    result = list(year_series)
+    trailing_index = len(result) - 1
+    while trailing_index >= 0 and result[trailing_index] is None:
+        trailing_index -= 1
+    while trailing_index >= 0 and result[trailing_index] == 0:
+        result[trailing_index] = None
+        trailing_index -= 1
+    return result
 
 
 def build_summary_json(publish_data):

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marsden Valley Trapping Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Marsden Valley Trapping Group</p>
+        <h1>Public trapping trends, cleaned and published from Trap.NZ records.</h1>
+        <p class="hero-text">
+          First proof-of-concept dashboard showing weekly catches, all-years comparisons, and summary metrics
+          from the current published dataset.
+        </p>
+      </div>
+      <div class="hero-meta card">
+        <p class="meta-label">Dataset</p>
+        <p id="dataset-range" class="meta-value">Loading...</p>
+        <p id="dataset-generated" class="meta-footnote"></p>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="controls card card-accent">
+        <div>
+          <p class="section-label">Filters</p>
+          <h2>Choose a species and time window</h2>
+        </div>
+        <div class="control-row">
+          <label>
+            <span>Species</span>
+            <select id="species-select"></select>
+          </label>
+          <label>
+            <span>Period</span>
+            <select id="period-select"></select>
+          </label>
+        </div>
+      </section>
+
+      <section class="summary-panel">
+        <article class="card metric-card">
+          <p class="section-label">Selected period</p>
+          <h3 id="total-catches">0</h3>
+          <p id="total-caption" class="metric-caption">Total catches</p>
+        </article>
+        <article class="card metric-card">
+          <p class="section-label">Trend</p>
+          <h3 id="trend-delta">0</h3>
+          <p id="trend-caption" class="metric-caption">Compared with previous period</p>
+        </article>
+        <article class="card metric-card">
+          <p class="section-label">Peak week</p>
+          <h3 id="peak-week-total">0</h3>
+          <p id="peak-week-caption" class="metric-caption">Best week in selected period</p>
+        </article>
+      </section>
+
+      <section class="card chart-card chart-wide">
+        <div class="chart-header">
+          <div>
+            <p class="section-label">Weekly catches</p>
+            <h2 id="weekly-title">Last 6 months</h2>
+          </div>
+          <p id="weekly-subtitle" class="chart-subtitle"></p>
+        </div>
+        <div class="chart-frame">
+          <canvas id="weekly-chart"></canvas>
+        </div>
+      </section>
+
+      <section class="card chart-card chart-wide">
+        <div class="chart-header">
+          <div>
+            <p class="section-label">Same species, all years</p>
+            <h2 id="comparison-title">Seasonal comparison</h2>
+          </div>
+          <p class="chart-subtitle">Weekly shape with monthly date markers</p>
+        </div>
+        <div class="comparison-toolbar">
+          <div id="year-toggle-group" class="year-toggle-group" aria-label="Choose years to compare"></div>
+        </div>
+        <div class="chart-frame">
+          <canvas id="comparison-chart"></canvas>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
