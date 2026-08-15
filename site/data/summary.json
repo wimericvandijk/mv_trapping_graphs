@@ -3,24 +3,24 @@
   "periods": {
     "last_6_months": {
       "species_totals": {
-        "Rat": 409,
-        "Mouse": 563,
-        "Possum": 143,
+        "Rat": 402,
+        "Mouse": 583,
+        "Possum": 140,
         "Mustelid": 16,
-        "All Species": 1153
+        "All Species": 1167
       },
       "trend": {
         "Rat": {
           "direction": "down",
-          "delta": -64
+          "delta": -73
         },
         "Mouse": {
           "direction": "up",
-          "delta": 286
+          "delta": 290
         },
         "Possum": {
-          "direction": "up",
-          "delta": 1
+          "direction": "down",
+          "delta": -1
         },
         "Mustelid": {
           "direction": "up",
@@ -28,30 +28,30 @@
         },
         "All Species": {
           "direction": "up",
-          "delta": 242
+          "delta": 239
         }
       },
       "trend_context": {
         "current_period": {
-          "start": "2026-02-08",
-          "end": "2026-08-08",
+          "start": "2026-02-14",
+          "end": "2026-08-14",
           "species_totals": {
-            "Rat": 409,
-            "Mouse": 563,
-            "Possum": 143,
+            "Rat": 402,
+            "Mouse": 583,
+            "Possum": 140,
             "Mustelid": 16,
-            "All Species": 1153
+            "All Species": 1167
           }
         },
         "previous_period": {
-          "start": "2025-02-08",
-          "end": "2025-08-08",
+          "start": "2025-02-14",
+          "end": "2025-08-14",
           "species_totals": {
-            "Rat": 473,
-            "Mouse": 277,
-            "Possum": 142,
+            "Rat": 475,
+            "Mouse": 293,
+            "Possum": 141,
             "Mustelid": 9,
-            "All Species": 911
+            "All Species": 928
           }
         }
       }
@@ -397,20 +397,20 @@
     },
     "2026": {
       "species_totals": {
-        "Rat": 483,
-        "Mouse": 595,
-        "Possum": 167,
+        "Rat": 490,
+        "Mouse": 618,
+        "Possum": 168,
         "Mustelid": 18,
-        "All Species": 1289
+        "All Species": 1324
       },
       "trend": {
         "Rat": {
           "direction": "down",
-          "delta": -47
+          "delta": -45
         },
         "Mouse": {
           "direction": "up",
-          "delta": 294
+          "delta": 298
         },
         "Possum": {
           "direction": "down",
@@ -422,30 +422,30 @@
         },
         "All Species": {
           "direction": "up",
-          "delta": 252
+          "delta": 262
         }
       },
       "trend_context": {
         "current_period": {
           "start": "2026-01-01",
-          "end": "2026-08-08",
+          "end": "2026-08-14",
           "species_totals": {
-            "Rat": 483,
-            "Mouse": 595,
-            "Possum": 167,
+            "Rat": 490,
+            "Mouse": 618,
+            "Possum": 168,
             "Mustelid": 18,
-            "All Species": 1289
+            "All Species": 1324
           }
         },
         "previous_period": {
           "start": "2025-01-01",
-          "end": "2025-08-08",
+          "end": "2025-08-14",
           "species_totals": {
-            "Rat": 530,
-            "Mouse": 301,
-            "Possum": 182,
+            "Rat": 535,
+            "Mouse": 320,
+            "Possum": 183,
             "Mustelid": 12,
-            "All Species": 1037
+            "All Species": 1062
           }
         }
       }

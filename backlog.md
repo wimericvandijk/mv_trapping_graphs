@@ -6,6 +6,9 @@ This file tracks the current plan for the trapping dashboard project.
 
 - Repository structure established.
 - Historical raw Trap.NZ CSV exports are present in `data/raw`.
+- Trap.NZ CSV imports can now run locally using `scripts/import/import_trapnz_csv.py` with ignored local secrets or environment variables.
+- Trap.NZ scheduled refreshes can now use a recent-only import path that merges touched annual outputs and republishes site JSON.
+- CSV ingestion is now complemented by an end-to-end automated Trap.NZ API path, including live import, recent-year merge, and site publish.
 - Raw trap records can be cleaned and annualised with `scripts/transform/annualise_csv.py`.
 - Trap metadata is joined into the cleaned output.
 - Species and trap type names are normalized.
@@ -19,19 +22,12 @@ This file tracks the current plan for the trapping dashboard project.
 - Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
 - The current dashboard layout, chart expansion behavior, and trend logic are good enough for review.
 
-## Next
+## Planned Work
 
-1. Review and collect feedback on the current dashboard slice.
-2. Investigate how much dashboard state should be persisted across interactions.
-3. Add operational views once trap-line level summaries exist.
-
-## After That
-
-1. Use the working examples in `config/secrets.json` as the starting point for Trap.NZ API integration.
-2. Optimise those API calls for regular scheduled use.
-3. Replace or complement CSV ingestion with automated API ingestion.
-4. Add GitHub Actions for scheduled nightly processing.
-5. Prepare GitHub Pages hosting flow.
+1. Add GitHub Actions for scheduled nightly processing.
+2. Prepare GitHub Pages hosting flow.
+3. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
+4. Add a simple button or menu-triggered project-information panel with basic formatted text and links for project background and contact details.
 
 ## Later Analytics
 
@@ -40,6 +36,7 @@ This file tracks the current plan for the trapping dashboard project.
 3. Compare catches per visit.
 4. Investigate rebait frequency.
 5. Support operational decision-making views.
+6. Add operational views once trap-line level summaries exist.
 
 ## Notes
 
@@ -49,3 +46,6 @@ This file tracks the current plan for the trapping dashboard project.
 - The biggest missing pieces are now dashboard polish and the next layer of analytics rather than the initial data publish or page scaffold.
 - The publish layer should use annual cleaned CSV files as input; `all_data.csv` is a convenience output rather than the preferred working source.
 - `site/data` is already the publish target for generated dashboard JSON. Parquet belongs to the later processed-data layer, not this publish target.
+- Initial review feedback received so far is positive, but it does not yet identify specific changes or defects.
+- More specific review feedback may take time to arrive and may never arrive.
+- Dashboard state persistence is not currently defined as a concrete requirement.

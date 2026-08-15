@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-15T03:27:27Z",
+  "generated_at": "2026-08-15T04:36:52Z",
   "source": {
     "project": "Marsden Valley Trapping Group",
     "published_from": "data/published/annual/all_project_data_*.csv"
@@ -28,7 +28,7 @@
   ],
   "date_range": {
     "start": "2019-09-13",
-    "end": "2026-08-08"
+    "end": "2026-08-14"
   },
   "notes": {
     "includes_overwritten_rows": false,

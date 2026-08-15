@@ -4231,10 +4231,10 @@
       "year": 2026,
       "species": {
         "Rat": 10,
-        "Mouse": 28,
+        "Mouse": 30,
         "Possum": 7,
         "Mustelid": 1,
-        "All Species": 46
+        "All Species": 48
       }
     },
     {
@@ -4242,11 +4242,23 @@
       "week_end": "2026-08-09",
       "year": 2026,
       "species": {
-        "Rat": 4,
-        "Mouse": 14,
+        "Rat": 8,
+        "Mouse": 22,
         "Possum": 2,
         "Mustelid": 0,
-        "All Species": 20
+        "All Species": 35
+      }
+    },
+    {
+      "week_start": "2026-08-10",
+      "week_end": "2026-08-16",
+      "year": 2026,
+      "species": {
+        "Rat": 3,
+        "Mouse": 13,
+        "Possum": 1,
+        "Mustelid": 0,
+        "All Species": 18
       }
     }
   ]

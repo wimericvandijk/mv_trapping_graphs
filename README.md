@@ -6,6 +6,8 @@ This repository is building a public trapping dashboard from Trap.NZ data for th
 
 The project currently has a working transform and publish pipeline.
 
+- Imports Trap.NZ CSV exports using a local ignored secrets file or environment variables.
+- Supports a recent-only Trap.NZ refresh path for scheduled use, followed by annual merge and JSON publish.
 - Reads Trap.NZ raw CSV exports from `data/raw`.
 - Joins trap records with trap metadata.
 - Normalizes species and trap type names from raw source values.
@@ -28,6 +30,10 @@ The main outputs from `scripts/transform/annualise_csv.py` are:
 - `data/published/annual/all_data.csv`
 - `data/published/annual/invalid_records.csv`
 - `data/review/annual/invalid_records.csv`
+
+The main script for importing raw Trap.NZ CSV files is:
+
+- `scripts/import/import_trapnz_csv.py`
 
 The main outputs from `scripts/publish/publish_to_json.py` are:
 
@@ -64,6 +70,7 @@ The next major step is to refine dashboard behavior, visual polish, and analytic
 ## Main Files
 
 - `scripts/transform/annualise_csv.py`: active raw CSV ingestion and cleansing pipeline
+- `scripts/import/import_trapnz_csv.py`: Trap.NZ CSV importer using ignored local secrets or environment variables
 - `scripts/transform/process_cleansed_files.py`: stub for the later processed-data or parquet stage
 - `scripts/transform/domain_constants.py`: canonical species and trap type names shared by Python scripts
 - `scripts/publish/publish_to_json.py`: site JSON publisher from annual cleaned CSV files
@@ -78,13 +85,49 @@ The next major step is to refine dashboard behavior, visual polish, and analytic
 
 ## Running The Current Pipeline
 
+Set up Trap.NZ import credentials first:
+
+- Copy `config/secrets.example.json` to `config/secrets.json` and fill in the real values, or
+- Set `TRAPNZ_API_KEY` and `TRAPNZ_PROJECT_ID` in your local environment.
+
+The importer prefers environment variables when both are present. `config/secrets.json` is ignored by git and should never be committed.
+
 From the repository root:
 
 ```powershell
+python scripts/import/import_trapnz_csv.py
 python scripts/transform/annualise_csv.py
 python scripts/publish/publish_to_json.py
 powershell -ExecutionPolicy Bypass -File scripts/publish/run_dashboard_server.ps1
 ```
+
+Useful import commands:
+
+```powershell
+python scripts/import/import_trapnz_csv.py --list-queries
+python scripts/import/import_trapnz_csv.py --dry-run
+python scripts/import/import_trapnz_csv.py --no-import --merge-recent --publish
+python scripts/import/import_trapnz_csv.py -q all_records
+python scripts/import/import_trapnz_csv.py --merge-recent --publish
+```
+
+Recommended scheduled refresh command:
+
+```powershell
+python scripts/import/import_trapnz_csv.py --merge-recent --publish
+```
+
+That path:
+
+- downloads `trap_list` and `recent_records`
+- merges only the impacted year data into the existing annual outputs
+- republishes the site JSON without forcing a full raw-data rebuild
+
+For development or testing, `--no-import` skips Trap.NZ API calls while still allowing the merge and publish follow-up steps to run against files already present under `data/raw`.
+
+The normal full rebuild path in `scripts/transform/annualise_csv.py` now ignores `*trap-records-recent*.csv` files so the rolling recent import does not create duplicate overwrite rows during a complete rebuild.
+
+The current Python import, transform, and publish scripts are intentionally single-threaded. At the current project scale they are fast enough for regular use, so the implementation currently favors simpler sequential behavior over added concurrency or parallel execution complexity.
 
 ## Review URL
 

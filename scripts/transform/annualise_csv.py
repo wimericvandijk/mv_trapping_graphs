@@ -3,10 +3,12 @@ import argparse
 from collections import defaultdict
 from datetime import datetime
 import csv
+import fnmatch
 from glob import glob
 import json
 import logging
 import os
+import re
 import sys
 
 SCRIPT_PATH = os.path.realpath(__file__)
@@ -72,6 +74,7 @@ TRAP_SUB_TYPE_COL = "trap_sub_type"
 RULE_BROKEN_COL = "rule_broken"
 DEFAULT_RULES_CONFIG = "../../config/trap_species_rules.json"
 DEFAULT_REVIEW_OUTPUT_FOLDER = "../../data/review/annual"
+RECENT_RECORD_GLOB = "*trap-records-recent*.csv"
 
 REQUIRED_RECORD_COLS = [TRAP_ID_COL, TRAP_CODE_COL, DATE_COL]
 REQUIRED_TRAP_COLS = [TRAP_ID_COL, "code", TRAP_TYPE_COL]
@@ -79,6 +82,9 @@ PRIVATE_COLS = ['recorded_by', 'username']
 PUBLIC_RECORD_FIELDNAMES = [
     "project",
     DATE_COL,
+    TRAP_ID_COL,
+    TRAP_CODE_COL,
+    LINE_COL,
     TRAP_TYPE_COL,
     "strikes",
     SPECIES_COL,
@@ -178,7 +184,62 @@ def project_public_rows(rows, fieldnames):
     ]
 
 
-def save_annual_csv(fieldnames, csv_data, output_folder):
+def build_year_data(csv_data):
+    year_data = defaultdict(list)
+    for datestamp in sorted(csv_data):
+        lines = csv_data[datestamp]
+        year_data[get_year_from_datestamp(datestamp)].extend(lines)
+    return year_data
+
+
+def get_output_fieldnames(fieldnames, public_only):
+    if public_only:
+        return get_public_fieldnames(fieldnames)
+    return list(fieldnames)
+
+
+def get_annual_output_filename(output_folder, year, latest_dt):
+    output_file_base = "{}/all_project_data_{}".format(output_folder, year)
+    days_to_eoy = (datetime(int(year), 12, 31) - latest_dt).total_seconds() / 60 / 60 / 24
+    if days_to_eoy > 10:
+        output_file_base += '_to_{}'.format(latest_dt.strftime("%Y-%m-%d"))
+    return output_file_base + '.csv'
+
+
+def remove_existing_year_files(output_folder, year):
+    pattern = os.path.join(output_folder, "all_project_data_{}*.csv".format(year))
+    for existing_file in glob(pattern):
+        os.remove(existing_file)
+        LOGGER.info("removed stale %s", existing_file)
+
+
+def get_saved_annual_files(output_folder):
+    return sorted(glob(os.path.join(output_folder, "all_project_data_*.csv")))
+
+
+def get_annual_file_year(filename):
+    match = re.search(r"all_project_data_(\d{4})", os.path.basename(filename))
+    if not match:
+        return None
+    return match.group(1)
+
+
+def rebuild_combined_output_file(output_folder, fieldnames, public_only):
+    annual_files = get_saved_annual_files(output_folder)
+    all_rows = []
+    output_fieldnames = get_output_fieldnames(fieldnames, public_only)
+    for annual_file in annual_files:
+        with open(annual_file, "r", newline="", encoding="utf-8-sig") as fp:
+            reader = csv.DictReader(fp)
+            for row in reader:
+                all_rows.append(row)
+    all_output_file = os.path.join(output_folder, "all_data.csv")
+    write_rows(all_output_file, output_fieldnames, all_rows)
+    LOGGER.info("saved %d lines to %s", len(all_rows) + 1, all_output_file)
+    return all_output_file
+
+
+def save_annual_csv(fieldnames, csv_data, output_folder, public_only=True, years_to_write=None):
     """
     Writes annualised csv files into output_folder.
         Any existing files in that folder with the same names will be overwritten
@@ -190,37 +251,31 @@ def save_annual_csv(fieldnames, csv_data, output_folder):
     Returns: [str]  list of output filenames
 
     """
-
     result = []
-    public_fieldnames = get_public_fieldnames(fieldnames)
-    year_data = defaultdict(list)
-    for datestamp in sorted(csv_data):
-        lines = csv_data[datestamp]
-        year_data[get_year_from_datestamp(datestamp)].extend(lines)
+    output_fieldnames = get_output_fieldnames(fieldnames, public_only)
+    year_data = build_year_data(csv_data)
+    if years_to_write is None:
+        years_to_write = sorted(year_data)
+    else:
+        years_to_write = sorted({str(year) for year in years_to_write})
 
-    all_output_rows = []
-    for year in sorted(year_data):
-        output_rows = year_data[year]
-        all_output_rows.extend(year_data[year])
-
-        latest_timestamp, latest_dt = get_latest_timestamp_in(year_data[year])
+    for year in years_to_write:
+        remove_existing_year_files(output_folder, year)
+        output_rows = year_data.get(year, [])
+        if not output_rows:
+            continue
+        latest_timestamp, latest_dt = get_latest_timestamp_in(output_rows)
         if not latest_timestamp:
             continue
-        output_file_base = "{}/all_project_data_{}".format(
-            output_folder, year
-        )  # all_project_data_20250123_20250329
-        days_to_eoy = (datetime(int(year), 12, 31) - latest_dt).total_seconds() / 60 / 60 / 24
-        if days_to_eoy > 10:
-            output_file_base += '_to_{}'.format(latest_dt.strftime("%Y-%m-%d"))
-        output_file = output_file_base + '.csv'
-        write_rows(output_file, public_fieldnames, project_public_rows(output_rows, public_fieldnames))
+        output_file = get_annual_output_filename(output_folder, year, latest_dt)
+        rows_to_write = output_rows
+        if public_only:
+            rows_to_write = project_public_rows(output_rows, output_fieldnames)
+        write_rows(output_file, output_fieldnames, rows_to_write)
         LOGGER.info("saved %d lines to %s, latest timestamp= %s", len(output_rows) + 1, output_file,
                     latest_timestamp)
         result.append(output_file)
-    all_output_file = "{}/all_data.csv".format(output_folder)
-    write_rows(all_output_file, public_fieldnames, project_public_rows(all_output_rows, public_fieldnames))
-    result.append(all_output_file)
-    LOGGER.info("saved %d lines to %s", len(all_output_rows) + 1, all_output_file)
+    result.append(rebuild_combined_output_file(output_folder, fieldnames, public_only))
     return result
 
 
@@ -305,12 +360,17 @@ def get_trap_day_key(row):
     return "{}|{}".format(row[TRAP_ID_COL], get_datestamp(row[DATE_COL]))
 
 
-def get_raw_files(path):
+def get_raw_files(path, record_glob="*trap-records*.csv"):
     if os.path.isfile(path):
         folder = os.path.dirname(path) or "."
     else:
         folder = path
-    record_files = sorted(glob(os.path.join(folder, "*trap-records*.csv")))
+    record_files = sorted(glob(os.path.join(folder, record_glob)))
+    if record_glob == "*trap-records*.csv":
+        record_files = [
+            filename for filename in record_files
+            if not fnmatch.fnmatch(os.path.basename(filename), RECENT_RECORD_GLOB)
+        ]
     trap_files = sorted(glob(os.path.join(folder, "*traps*.csv")))
     trap_files = [filename for filename in trap_files if "trap-records" not in os.path.basename(filename)]
     if not record_files:
@@ -389,7 +449,7 @@ def mark_rejected_row(row, rule_broken, reason):
     return rejected
 
 
-def get_csv_data(path):
+def get_csv_data(path, record_glob="*trap-records*.csv"):
     """
     reads in all CSV data, ignoring duplicate lines
 
@@ -405,7 +465,7 @@ def get_csv_data(path):
     csv_data = defaultdict(list)
     unique_key_data = {}
     invalid_rows = []
-    record_files, trap_files = get_raw_files(path)
+    record_files, trap_files = get_raw_files(path, record_glob=record_glob)
     trap_lookup = load_trap_lookup(trap_files)
     fieldnames = None
     for filename in record_files:
@@ -492,6 +552,107 @@ def save_review_rows(invalid_rows, output_folder):
     return output_file
 
 
+def load_existing_annual_csv_data(output_folder, years=None):
+    csv_data = defaultdict(list)
+    fieldnames = None
+    requested_years = None if years is None else {str(year) for year in years}
+    for filename in get_saved_annual_files(output_folder):
+        file_year = get_annual_file_year(filename)
+        if requested_years is not None and file_year not in requested_years:
+            continue
+        with open(filename, "r", newline="", encoding="utf-8-sig") as fp:
+            reader = csv.DictReader(fp)
+            if not reader.fieldnames:
+                continue
+            if fieldnames is None:
+                fieldnames = list(reader.fieldnames)
+            for row in reader:
+                datestamp = row.get("clean_datestamp") or get_datestamp(row[DATE_COL])
+                csv_data[datestamp].append(row)
+    return fieldnames, csv_data
+
+
+def load_existing_invalid_rows(output_folder):
+    output_file = os.path.join(output_folder, "invalid_records.csv")
+    if not os.path.exists(output_file):
+        return []
+    with open(output_file, "r", newline="", encoding="utf-8-sig") as fp:
+        reader = csv.DictReader(fp)
+        return list(reader)
+
+
+def get_earliest_timestamp_in(csv_data):
+    earliest = None
+    for rows in csv_data.values():
+        for row in rows:
+            try:
+                dt = parse_timestamp(row[DATE_COL])
+            except ValueError:
+                continue
+            if earliest is None or dt < earliest:
+                earliest = dt
+    return earliest
+
+
+def get_years_in_csv_data(csv_data):
+    return sorted({get_year_from_datestamp(datestamp) for datestamp in csv_data})
+
+
+def is_row_before_cutoff(row, cutoff_dt):
+    return parse_timestamp(row[DATE_COL]) < cutoff_dt
+
+
+def merge_csv_data(existing_csv_data, recent_csv_data, cutoff_dt):
+    merged_csv_data = defaultdict(list)
+    for datestamp, rows in existing_csv_data.items():
+        preserved_rows = [row for row in rows if is_row_before_cutoff(row, cutoff_dt)]
+        if preserved_rows:
+            merged_csv_data[datestamp].extend(preserved_rows)
+    for datestamp, rows in recent_csv_data.items():
+        merged_csv_data[datestamp].extend(rows)
+    return merged_csv_data
+
+
+def merge_invalid_rows(existing_invalid_rows, recent_invalid_rows, cutoff_dt):
+    merged_rows = []
+    for row in existing_invalid_rows:
+        if is_row_before_cutoff(row, cutoff_dt):
+            merged_rows.append(row)
+    merged_rows.extend(recent_invalid_rows)
+    return merged_rows
+
+
+def merge_recent_transform(args):
+    review_output_folder = __ensure_folder(args.review_output_folder)
+    public_output_folder = __ensure_folder(args.output_folder)
+    recent_fieldnames, recent_csv_data, recent_invalid_rows = get_csv_data(
+        args.path,
+        record_glob=RECENT_RECORD_GLOB,
+    )
+    cutoff_dt = get_earliest_timestamp_in(recent_csv_data)
+    if cutoff_dt is None:
+        raise ValueError("no recent trap record rows found for merge")
+    impacted_years = get_years_in_csv_data(recent_csv_data)
+    detailed_fieldnames, existing_csv_data = load_existing_annual_csv_data(
+        review_output_folder,
+        years=impacted_years,
+    )
+    if detailed_fieldnames is None:
+        raise ValueError(
+            "no detailed annual files found in {}. Run the full annualise transform first.".format(
+                review_output_folder
+            )
+        )
+    merged_csv_data = merge_csv_data(existing_csv_data, recent_csv_data, cutoff_dt)
+    existing_invalid_rows = load_existing_invalid_rows(review_output_folder)
+    merged_invalid_review_rows = merge_invalid_rows(existing_invalid_rows, recent_invalid_rows, cutoff_dt)
+
+    save_annual_csv(detailed_fieldnames or recent_fieldnames, merged_csv_data, review_output_folder, public_only=False, years_to_write=impacted_years)
+    save_annual_csv(detailed_fieldnames or recent_fieldnames, merged_csv_data, public_output_folder, public_only=True, years_to_write=impacted_years)
+    save_review_rows(merged_invalid_review_rows, review_output_folder)
+    save_invalid_rows(merged_invalid_review_rows, public_output_folder)
+
+
 def __ensure_folder(folder):
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -528,8 +689,13 @@ def get_cmd_args(title):
     parser.add_argument(
         "-rof",
         "--review_output_folder",
-        help="folder to save detailed internal review csv outputs to",
+        help="folder to save detailed internal annual and review csv outputs to",
         default=DEFAULT_REVIEW_OUTPUT_FOLDER,
+    )
+    parser.add_argument(
+        "--merge_recent",
+        action="store_true",
+        help="merge the recent raw import into existing detailed annual files instead of rebuilding from all raw records",
     )
     return parser.parse_args()
 
@@ -556,11 +722,16 @@ def main():
         TRAP_RULES = load_trap_rules(args.rules_config)
         LOGGER.info("loaded trap rules from %s", args.rules_config)
 
-        output_folder = __ensure_folder(args.output_folder)
-        fieldnames, csv_data, invalid_rows = get_csv_data(args.path)
-        save_annual_csv(fieldnames, csv_data, output_folder)
-        save_invalid_rows(invalid_rows, output_folder)
-        save_review_rows(invalid_rows, args.review_output_folder)
+        if args.merge_recent:
+            merge_recent_transform(args)
+        else:
+            output_folder = __ensure_folder(args.output_folder)
+            review_output_folder = __ensure_folder(args.review_output_folder)
+            fieldnames, csv_data, invalid_rows = get_csv_data(args.path)
+            save_annual_csv(fieldnames, csv_data, output_folder, public_only=True)
+            save_annual_csv(fieldnames, csv_data, review_output_folder, public_only=False)
+            save_invalid_rows(invalid_rows, output_folder)
+            save_review_rows(invalid_rows, review_output_folder)
     finally:
         if initial_wd != base_folder:
             os.chdir(initial_wd)

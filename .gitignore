@@ -29,5 +29,8 @@ data/raw/
 # Optional: published outputs
 data/published/
 
+# Internal review outputs
+data/review/
+
 # Invalid records
 invalid_records.csv
