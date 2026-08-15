@@ -129,6 +129,29 @@ The normal full rebuild path in `scripts/transform/annualise_csv.py` now ignores
 
 The current Python import, transform, and publish scripts are intentionally single-threaded. At the current project scale they are fast enough for regular use, so the implementation currently favors simpler sequential behavior over added concurrency or parallel execution complexity.
 
+## GitHub Actions
+
+The repository now includes a nightly refresh workflow at `.github/workflows/nightly-update.yml`.
+
+It requires these repository secrets:
+
+- `TRAPNZ_API_KEY`
+- `TRAPNZ_PROJECT_ID`
+
+Workflow behavior:
+
+- On a runner that already has cached detailed annual review data, it uses the recent-only API refresh path.
+- On a cache miss, it bootstraps by importing `all_records`, then runs the full transform and publish steps.
+- It commits refreshed `site/data/metadata.json`, `site/data/weekly.json`, `site/data/yearly_comparison.json`, and `site/data/summary.json` back to `main`.
+- The existing Pages deploy workflow then publishes the updated site from that push.
+
+Troubleshooting:
+
+- If the nightly workflow fails with authentication errors, verify that the repository secrets `TRAPNZ_API_KEY` and `TRAPNZ_PROJECT_ID` are present and current.
+- If the recent-only refresh path fails on a new runner, the workflow should fall back to a full bootstrap import on cache miss. Check whether the `data/review/annual` cache restored successfully.
+- If the workflow runs but commits no changes, inspect the workflow logs to confirm whether Trap.NZ returned new data and whether the published JSON files actually changed.
+- If the workflow commits updated site data but the site does not change, check the `Deploy Dashboard To GitHub Pages` workflow to confirm the subsequent Pages deployment succeeded.
+
 ## Review URL
 
 The current external review build is available at:

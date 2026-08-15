@@ -9,6 +9,7 @@ This file tracks the current plan for the trapping dashboard project.
 - Trap.NZ CSV imports can now run locally using `scripts/import/import_trapnz_csv.py` with ignored local secrets or environment variables.
 - Trap.NZ scheduled refreshes can now use a recent-only import path that merges touched annual outputs and republishes site JSON.
 - CSV ingestion is now complemented by an end-to-end automated Trap.NZ API path, including live import, recent-year merge, and site publish.
+- GitHub Actions can now run scheduled nightly processing with a cached recent-refresh path and a full-import bootstrap fallback.
 - Raw trap records can be cleaned and annualised with `scripts/transform/annualise_csv.py`.
 - Trap metadata is joined into the cleaned output.
 - Species and trap type names are normalized.
@@ -24,10 +25,9 @@ This file tracks the current plan for the trapping dashboard project.
 
 ## Planned Work
 
-1. Add GitHub Actions for scheduled nightly processing.
-2. Prepare GitHub Pages hosting flow.
-3. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
-4. Add a simple button or menu-triggered project-information panel with basic formatted text and links for project background and contact details.
+1. Prepare GitHub Pages hosting flow.
+2. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
+3. Add a simple button or menu-triggered project-information panel with basic formatted text and links for project background and contact details.
 
 ## Later Analytics
 

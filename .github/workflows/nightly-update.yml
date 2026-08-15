@@ -1,0 +1,73 @@
+name: Nightly Data Refresh
+
+on:
+  schedule:
+    - cron: '15 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh-data:
+    runs-on: ubuntu-latest
+    env:
+      TRAPNZ_API_KEY: ${{ secrets.TRAPNZ_API_KEY }}
+      TRAPNZ_PROJECT_ID: ${{ secrets.TRAPNZ_PROJECT_ID }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Restore detailed annual cache
+        id: restore-review-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: data/review/annual
+          key: review-annual-${{ github.run_id }}
+          restore-keys: |
+            review-annual-
+
+      - name: Refresh from recent API data
+        if: hashFiles('data/review/annual/all_data.csv') != ''
+        run: python scripts/import/import_trapnz_csv.py --merge-recent --publish
+
+      - name: Bootstrap from full API import
+        if: hashFiles('data/review/annual/all_data.csv') == ''
+        run: |
+          python scripts/import/import_trapnz_csv.py -q trap_list -q all_records
+          python scripts/transform/annualise_csv.py
+          python scripts/publish/publish_to_json.py
+
+      - name: Save detailed annual cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/review/annual
+          key: review-annual-${{ github.run_id }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit refreshed site data
+        run: |
+          git add site/data/metadata.json site/data/weekly.json site/data/yearly_comparison.json site/data/summary.json
+          if git diff --cached --quiet; then
+            echo "No site data changes to commit"
+            exit 0
+          fi
+          git commit -m "Nightly data refresh"
+          git push
