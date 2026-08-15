@@ -29,7 +29,7 @@ This file tracks the current plan for the trapping dashboard project.
 
 ## Planned Work
 
-1. Create or confirm the organisation-owned public GitHub repository and configure `PUBLIC_SITE_REPO`, `PUBLIC_SITE_BRANCH`, and `PUBLIC_SITE_DEPLOY_TOKEN` in the private development repository.
+1. Configure `PUBLIC_SITE_REPO=MarsdenValley/trapping_graphs`, `PUBLIC_SITE_BRANCH`, and `PUBLIC_SITE_DEPLOY_TOKEN` in the private development repository, then enable GitHub Pages in the public repository.
 2. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
 3. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 

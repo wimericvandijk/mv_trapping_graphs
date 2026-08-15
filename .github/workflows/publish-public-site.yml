@@ -25,7 +25,7 @@ jobs:
       - name: Validate publish configuration
         run: |
           if [ -z "$PUBLIC_SITE_REPO" ]; then
-            echo "Repository variable PUBLIC_SITE_REPO is required, for example org-name/public-site-repo"
+            echo "Repository variable PUBLIC_SITE_REPO is required, for example MarsdenValley/trapping_graphs"
             exit 1
           fi
           if [ -z "$PUBLIC_SITE_DEPLOY_TOKEN" ]; then

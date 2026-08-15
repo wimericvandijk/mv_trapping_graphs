@@ -156,7 +156,7 @@ It requires these repository secrets:
 
 It requires these repository variables for cross-repository publish:
 
-- `PUBLIC_SITE_REPO`, for example `org-name/public-site-repo`
+- `PUBLIC_SITE_REPO`, set this to `MarsdenValley/trapping_graphs`
 - `PUBLIC_SITE_BRANCH`, usually `main`
 
 Workflow behavior:
@@ -171,10 +171,10 @@ Workflow behavior:
 Recommended private-development to public-site setup:
 
 1. Keep this repository as the private development repository.
-2. Create a separate public repository to hold only the published static site.
+2. Use the separate public repository `MarsdenValley/trapping_graphs` to hold only the published static site.
 3. Create a fine-grained personal access token or organisation-owned token that can write to the public repository.
 4. Store that token in this repository as `PUBLIC_SITE_DEPLOY_TOKEN`.
-5. Set `PUBLIC_SITE_REPO` to the target `owner/repo` name and `PUBLIC_SITE_BRANCH` to the target branch, usually `main`.
+5. Set `PUBLIC_SITE_REPO` to `MarsdenValley/trapping_graphs` and `PUBLIC_SITE_BRANCH` to the target branch, usually `main`.
 6. Enable GitHub Pages in the public repository using the published branch root.
 7. Run the `Publish Static Site To Public Repo` workflow manually once the target public repository exists.
 
@@ -194,6 +194,10 @@ The current external review build is available at:
 - `https://wimericvandijk.github.io/mv_trapping_graphs/`
 
 For an organisation-owned public site, the URL would move to that public repository's GitHub Pages address or custom domain.
+
+For the currently identified public repository, the expected GitHub Pages URL would normally be:
+
+- `https://marsdenvalley.github.io/trapping_graphs/`
 
 ## Intended Direction
 
