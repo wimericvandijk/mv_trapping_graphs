@@ -648,7 +648,13 @@ def merge_recent_transform(args):
     merged_invalid_review_rows = merge_invalid_rows(existing_invalid_rows, recent_invalid_rows, cutoff_dt)
 
     save_annual_csv(detailed_fieldnames or recent_fieldnames, merged_csv_data, review_output_folder, public_only=False, years_to_write=impacted_years)
-    save_annual_csv(detailed_fieldnames or recent_fieldnames, merged_csv_data, public_output_folder, public_only=True, years_to_write=impacted_years)
+    all_detailed_fieldnames, all_review_csv_data = load_existing_annual_csv_data(review_output_folder)
+    save_annual_csv(
+        all_detailed_fieldnames or detailed_fieldnames or recent_fieldnames,
+        all_review_csv_data,
+        public_output_folder,
+        public_only=True,
+    )
     save_review_rows(merged_invalid_review_rows, review_output_folder)
     save_invalid_rows(merged_invalid_review_rows, public_output_folder)
 
