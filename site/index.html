@@ -15,8 +15,11 @@
   <div class="page-shell">
     <header class="hero">
       <div class="hero-copy card">
-        <p class="eyebrow">Marsden Valley Trapping Group</p>
+        <p id="hero-project-name" class="eyebrow">Marsden Valley Trapping Group</p>
+        <div class="hero-heading-row">
         <h1 id="hero-title">Trapping trends</h1>
+          <button id="project-info-button" class="hero-info-button" type="button">About this project</button>
+        </div>
         <p id="hero-published" class="hero-text">Published</p>
       </div>
     </header>
@@ -66,8 +69,10 @@
           </div>
           <div class="chart-actions">
             <label class="period-control">
-              <span>Period</span>
-              <select id="period-select"></select>
+              <span class="period-control-label">Period</span>
+              <span class="period-control-shell">
+                <select id="period-select"></select>
+              </span>
             </label>
             <p id="weekly-subtitle" class="chart-subtitle"></p>
             <button class="chart-expand-button" type="button" data-chart-target="weekly-panel">Expand</button>
@@ -114,14 +119,32 @@
       </div>
       <div id="overlay-weekly-toolbar" class="overlay-toolbar" hidden>
         <label class="period-control">
-          <span>Period</span>
-          <select id="overlay-period-select"></select>
+          <span class="period-control-label">Period</span>
+          <span class="period-control-shell">
+            <select id="overlay-period-select"></select>
+          </span>
         </label>
       </div>
       <div id="overlay-comparison-toolbar" class="comparison-toolbar overlay-comparison-toolbar" hidden>
         <div id="overlay-year-toggle-group" class="year-toggle-group" aria-label="Choose years to compare in expanded view"></div>
       </div>
       <div id="overlay-chart-host" class="chart-overlay-host"></div>
+    </section>
+  </div>
+
+  <div id="project-info-overlay" class="info-overlay" hidden>
+    <div class="info-overlay-backdrop" data-close-project-info="true"></div>
+    <section class="info-overlay-panel card" aria-labelledby="project-info-title" aria-modal="true" role="dialog">
+      <div class="info-overlay-header">
+        <div>
+          <p class="section-label">Project information</p>
+          <h2 id="project-info-title">About this project</h2>
+        </div>
+        <button id="project-info-close" class="chart-expand-button" type="button">Close</button>
+      </div>
+      <div class="info-overlay-body">
+        <div id="project-info-content" class="info-copy"></div>
+      </div>
     </section>
   </div>
 </body>

@@ -1,5 +1,4 @@
 const DASHBOARD_SPECIES = ["Rat", "Mouse", "Possum", "Mustelid", "All Species"];
-const PERIOD_LAST_SIX_MONTHS = "last_6_months";
 const AXIS_TICK_COLOR = "#506157";
 const GRID_COLOR = "rgba(33, 48, 40, 0.12)";
 
@@ -16,6 +15,7 @@ const state = {
   comparisonChart: null,
   expandedChartId: null,
   expandedChartParent: null,
+  isProjectInfoOpen: false,
 };
 
 const YEAR_PALETTE = [
@@ -62,23 +62,38 @@ function formatMonthDayLabel(dateValue) {
   });
 }
 
+function getPeriodDefinition(periodKey) {
+  return (state.metadata.periods || []).find((period) => period.key === periodKey) || null;
+}
+
 function formatPeriodLabel(periodKey) {
-  if (periodKey === PERIOD_LAST_SIX_MONTHS) {
-    return "Last 6 months";
+  const periodDefinition = getPeriodDefinition(periodKey);
+  if (periodDefinition && periodDefinition.label) {
+    return periodDefinition.label;
   }
   return periodKey;
 }
 
 function getPeriodOptions(metadata) {
-  return [PERIOD_LAST_SIX_MONTHS, ...metadata.years.map(String)];
+  if (Array.isArray(metadata.periods) && metadata.periods.length > 0) {
+    return metadata.periods.map((period) => period.key);
+  }
+  return metadata.years.map(String);
 }
 
 function buildWeeklyWindow(periodKey, metadata) {
+  const periodDefinition = (metadata.periods || []).find((period) => period.key === periodKey);
   const endDate = new Date(metadata.date_range.end);
-  if (periodKey === PERIOD_LAST_SIX_MONTHS) {
+  if (periodDefinition && periodDefinition.type === "rolling_months") {
     const startDate = new Date(endDate);
-    startDate.setMonth(startDate.getMonth() - 6);
+    startDate.setMonth(startDate.getMonth() - periodDefinition.months);
     return { startDate, endDate };
+  }
+  if (periodDefinition && periodDefinition.type === "calendar_year") {
+    return {
+      startDate: new Date(periodDefinition.year, 0, 1),
+      endDate: new Date(periodDefinition.year, 11, 31),
+    };
   }
 
   const year = Number(periodKey);
@@ -133,7 +148,7 @@ function updateSummaryCards(species, periodKey, weeks) {
 }
 
 function getWeeklyChartColor(periodKey, weeks) {
-  if (periodKey !== PERIOD_LAST_SIX_MONTHS) {
+  if (periodKey !== state.metadata.defaults.period) {
     return state.yearColors[periodKey] || YEAR_PALETTE[0];
   }
 
@@ -350,6 +365,97 @@ function renderDashboard() {
   buildComparisonChart(species);
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderInlineMarkdown(text) {
+  const escaped = escapeHtml(text);
+  return escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+}
+
+function renderMarkdown(markdown) {
+  if (!markdown || !markdown.trim()) {
+    return "<p>More project background will be added here.</p>";
+  }
+
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  const html = [];
+  let paragraphLines = [];
+  let listItems = [];
+
+  function flushParagraph() {
+    if (paragraphLines.length === 0) {
+      return;
+    }
+    html.push(`<p>${renderInlineMarkdown(paragraphLines.join(" "))}</p>`);
+    paragraphLines = [];
+  }
+
+  function flushList() {
+    if (listItems.length === 0) {
+      return;
+    }
+    html.push(`<ul>${listItems.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join("")}</ul>`);
+    listItems = [];
+  }
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.*)$/);
+    if (headingMatch) {
+      flushParagraph();
+      flushList();
+      const level = Math.min(headingMatch[1].length + 1, 4);
+      html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`);
+      return;
+    }
+
+    const listMatch = trimmed.match(/^[-*]\s+(.*)$/);
+    if (listMatch) {
+      flushParagraph();
+      listItems.push(listMatch[1]);
+      return;
+    }
+
+    flushList();
+    paragraphLines.push(trimmed);
+  });
+
+  flushParagraph();
+  flushList();
+  return html.join("");
+}
+
+function openProjectInfo() {
+  const overlay = document.getElementById("project-info-overlay");
+  if (!overlay) {
+    return;
+  }
+  overlay.hidden = false;
+  state.isProjectInfoOpen = true;
+}
+
+function closeProjectInfo() {
+  const overlay = document.getElementById("project-info-overlay");
+  if (!overlay) {
+    return;
+  }
+  overlay.hidden = true;
+  state.isProjectInfoOpen = false;
+}
+
 function openChartOverlay(chartId) {
   const chartFrame = document.getElementById(chartId);
   const overlay = document.getElementById("chart-overlay");
@@ -423,8 +529,25 @@ function bindChartOverlayControls() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeChartOverlay();
+      closeProjectInfo();
     }
   });
+}
+
+function bindProjectInfoControls() {
+  const openButton = document.getElementById("project-info-button");
+  const closeButton = document.getElementById("project-info-close");
+  const backdrop = document.querySelector("[data-close-project-info='true']");
+
+  if (openButton) {
+    openButton.addEventListener("click", openProjectInfo);
+  }
+  if (closeButton) {
+    closeButton.addEventListener("click", closeProjectInfo);
+  }
+  if (backdrop) {
+    backdrop.addEventListener("click", closeProjectInfo);
+  }
 }
 
 function populateFilters() {
@@ -505,8 +628,30 @@ function populateFilters() {
 }
 
 function populateMeta() {
+  const projectName = state.metadata.project && state.metadata.project.name
+    ? state.metadata.project.name
+    : state.metadata.source.project;
+  const about = state.metadata.project && state.metadata.project.about
+    ? state.metadata.project.about
+    : {};
+  const aboutContent = document.getElementById("project-info-content");
+  const aboutTitle = document.getElementById("project-info-title");
+  const infoButton = document.getElementById("project-info-button");
+
+  document.getElementById("hero-project-name").textContent = projectName;
   document.getElementById("hero-title").textContent = `Trapping trends ${formatFriendlyDate(state.metadata.date_range.start)} to ${formatFriendlyDate(state.metadata.date_range.end)}`;
   document.getElementById("hero-published").textContent = `Published ${formatFriendlyDateTime(state.metadata.generated_at)}`;
+
+  if (aboutTitle) {
+    aboutTitle.textContent = `About ${projectName}`;
+  }
+
+  if (aboutContent) {
+    aboutContent.innerHTML = renderMarkdown(about.content_markdown || about.summary || "");
+  }
+  if (infoButton) {
+    infoButton.hidden = !about.content_markdown && !about.summary;
+  }
 }
 
 async function init() {
@@ -522,7 +667,9 @@ async function init() {
     state.yearlyComparison = yearlyComparison;
     state.summary = summary;
     state.selectedSpecies = metadata.defaults.species;
-    state.selectedPeriod = metadata.defaults.period;
+    state.selectedPeriod = getPeriodOptions(metadata).includes(metadata.defaults.period)
+      ? metadata.defaults.period
+      : getPeriodOptions(metadata)[0];
     state.selectedYears = getDefaultSelectedYears();
     buildYearColorMap();
 
@@ -530,6 +677,7 @@ async function init() {
     populateFilters();
     renderYearButtons();
     bindChartOverlayControls();
+    bindProjectInfoControls();
     renderDashboard();
   } catch (error) {
     document.body.innerHTML = `<div style="padding:24px;font-family:IBM Plex Sans,sans-serif;color:#213028;">Failed to load dashboard data: ${error.message}</div>`;

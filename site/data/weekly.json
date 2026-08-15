@@ -1038,11 +1038,11 @@
       "week_end": "2021-06-27",
       "year": 2021,
       "species": {
-        "Rat": 9,
+        "Rat": 8,
         "Mouse": 11,
         "Possum": 0,
         "Mustelid": 0,
-        "All Species": 20
+        "All Species": 19
       }
     },
     {
@@ -3054,11 +3054,11 @@
       "week_end": "2024-09-15",
       "year": 2024,
       "species": {
-        "Rat": 9,
+        "Rat": 8,
         "Mouse": 57,
         "Possum": 1,
         "Mustelid": 0,
-        "All Species": 68
+        "All Species": 67
       }
     },
     {
@@ -3079,10 +3079,10 @@
       "year": 2024,
       "species": {
         "Rat": 2,
-        "Mouse": 22,
+        "Mouse": 23,
         "Possum": 2,
         "Mustelid": 1,
-        "All Species": 27
+        "All Species": 28
       }
     },
     {
@@ -4231,10 +4231,10 @@
       "year": 2026,
       "species": {
         "Rat": 10,
-        "Mouse": 30,
+        "Mouse": 28,
         "Possum": 7,
         "Mustelid": 1,
-        "All Species": 48
+        "All Species": 46
       }
     },
     {
@@ -4242,23 +4242,11 @@
       "week_end": "2026-08-09",
       "year": 2026,
       "species": {
-        "Rat": 8,
-        "Mouse": 22,
+        "Rat": 4,
+        "Mouse": 14,
         "Possum": 2,
         "Mustelid": 0,
-        "All Species": 35
-      }
-    },
-    {
-      "week_start": "2026-08-10",
-      "week_end": "2026-08-16",
-      "year": 2026,
-      "species": {
-        "Rat": 3,
-        "Mouse": 13,
-        "Possum": 1,
-        "Mustelid": 0,
-        "All Species": 18
+        "All Species": 20
       }
     }
   ]

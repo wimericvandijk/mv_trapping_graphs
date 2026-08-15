@@ -36,6 +36,7 @@ The first site data contract should consist of four files:
 Purpose:
 
 - describes the published dataset
+- carries public project identity and about-text source information from `config/site_project.json`
 - tells the site which species and years are available
 - supports default filters and labels
 
@@ -45,6 +46,13 @@ Format:
 {
   "schema_version": 1,
   "generated_at": "2026-08-14T15:00:00Z",
+  "project": {
+    "name": "Marsden Valley Trapping Group",
+    "about": {
+      "summary": "Community trapping dashboard for the Marsden Valley Trapping Group, publishing public catch trends from Trap.NZ data.",
+      "source_path": "docs/Trapping_Dashboard_Project_Summary_v2.docx"
+    }
+  },
   "source": {
     "project": "Marsden Valley Trapping Group",
     "published_from": "data/published/annual/all_project_data_*.csv"
@@ -53,6 +61,32 @@ Format:
     "species": "Rat",
     "period": "last_6_months"
   },
+  "periods": [
+    {
+      "key": "last_3_months",
+      "label": "Last 3 months",
+      "type": "rolling_months",
+      "months": 3
+    },
+    {
+      "key": "last_6_months",
+      "label": "Last 6 months",
+      "type": "rolling_months",
+      "months": 6
+    },
+    {
+      "key": "last_12_months",
+      "label": "Last 12 months",
+      "type": "rolling_months",
+      "months": 12
+    },
+    {
+      "key": "2019",
+      "label": "2019",
+      "type": "calendar_year",
+      "year": 2019
+    }
+  ],
   "species": [
     "Rat",
     "Mouse",
@@ -71,6 +105,12 @@ Format:
   }
 }
 ```
+
+Notes:
+
+- `project.name` is the preferred site-facing display name.
+- `project.about` is available for a future project-information or about panel.
+- `source.project` remains the published source label for compatibility with existing consumers.
 
 ## 2. weekly.json
 
@@ -106,7 +146,7 @@ Notes:
 - One row per week across the full dataset.
 - `Mustelid` is the combined total of stoat, weasel, and ferret.
 - `All Species` means all actual catches excluding `None` and `Unspecified`.
-- The site filters the time window client-side for views such as last 6 months or single year.
+- The site filters the time window client-side using the ordered `metadata.periods` definitions, such as rolling 3, 6, or 12 month windows and single calendar years.
 
 ## 3. yearly_comparison.json
 
@@ -163,6 +203,21 @@ Format:
 {
   "schema_version": 1,
   "periods": {
+    "last_3_months": {
+      "species_totals": {
+        "Rat": 12,
+        "Mouse": 4,
+        "Possum": 5,
+        "Mustelid": 0,
+        "All Species": 21
+      },
+      "trend": {
+        "Rat": {
+          "direction": "up",
+          "delta": 3
+        }
+      }
+    },
     "last_6_months": {
       "species_totals": {
         "Rat": 24,
@@ -197,8 +252,9 @@ Format:
 
 Notes:
 
+- `last_3_months`, `last_6_months`, and `last_12_months` are rolling dashboard periods.
 - `last_6_months` should be the default dashboard period.
-- For `last_6_months`, trend should compare against the same 6-month season one year earlier.
+- For each rolling period, trend should compare against the same seasonal window one year earlier.
 - For annual periods from 2020 onward, trend should compare against the previous calendar year.
 - For the latest incomplete year, the annual trend should compare year-to-date against the equivalent cutoff date in the prior year.
 - `trend_context` may be included to support QA or debugging, but the dashboard does not need to render it permanently.
@@ -229,7 +285,7 @@ That is enough to support the first proof-of-concept dashboard without committin
 The current dashboard implementation uses:
 
 - species radio-button navigation on the left
-- a period dropdown above the weekly chart
+- a metadata-driven period control above the weekly chart, ordered as rolling windows first and then years from oldest to most recent
 - summary metrics in a compact table
 - year toggle buttons for the all-years comparison chart
 - expand or close chart overlays for both charts

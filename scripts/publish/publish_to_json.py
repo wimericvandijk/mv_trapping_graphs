@@ -12,6 +12,7 @@ import sys
 SCRIPT_PATH = os.path.realpath(__file__)
 SCRIPT_FOLDER = os.path.dirname(SCRIPT_PATH)
 SCRIPTS_FOLDER = os.path.dirname(SCRIPT_FOLDER)
+REPO_ROOT = os.path.dirname(SCRIPTS_FOLDER)
 if SCRIPTS_FOLDER not in sys.path:
     sys.path.insert(0, SCRIPTS_FOLDER)
 
@@ -37,6 +38,13 @@ SITE_SPECIES = [
     "All Species",
 ]
 ACTUAL_CATCH_EXCLUSIONS = {SPECIES_NONE, SPECIES_UNSPECIFIED}
+ROLLING_PERIOD_MONTHS = [
+    ("last_3_months", 3),
+    ("last_6_months", 6),
+    ("last_12_months", 12),
+]
+DEFAULT_PERIOD_KEY = "last_6_months"
+DEFAULT_SITE_PROJECT_CONFIG_PATH = "../../config/site_project.json"
 
 
 def parse_record_date(value):
@@ -64,6 +72,48 @@ def ensure_folder(folder):
     return folder
 
 
+def load_json_file(path):
+    with open(path, "r", encoding="utf-8") as fp:
+        return json.load(fp)
+
+
+def load_site_project_config(path):
+    if not os.path.exists(path):
+        return {}
+    site_project_config = load_json_file(path)
+    if not isinstance(site_project_config, dict):
+        raise ValueError("site project config must be a JSON object")
+    return site_project_config
+
+
+def load_text_file(path):
+    with open(path, "r", encoding="utf-8") as fp:
+        return fp.read()
+
+
+def resolve_about_content(about_config):
+    if not isinstance(about_config, dict):
+        return {}
+
+    about = dict(about_config)
+    source_path = (about.get("source_path") or "").strip()
+    if not source_path:
+        return about
+
+    absolute_source_path = os.path.normpath(os.path.join(REPO_ROOT, source_path))
+    if not os.path.exists(absolute_source_path):
+        raise ValueError("about source file not found: {}".format(source_path))
+
+    _base_name, extension = os.path.splitext(source_path)
+    source_format = extension.lower()
+    if source_format != ".md":
+        raise ValueError("unsupported about source format: {}".format(source_format or "<none>"))
+
+    about["source_format"] = source_format
+    about["content_markdown"] = load_text_file(absolute_source_path).strip()
+    return about
+
+
 def get_site_species_counts(species, strikes):
     counts = {site_species: 0 for site_species in SITE_SPECIES}
     if species in RAT_SPECIES:
@@ -82,6 +132,36 @@ def get_site_species_counts(species, strikes):
 def add_species_counts(target, counts):
     for species_name, value in counts.items():
         target[species_name] += value
+
+
+def format_period_label(period_key):
+    if period_key.startswith("last_") and period_key.endswith("_months"):
+        month_count = period_key[len("last_") : -len("_months")]
+        return "Last {} months".format(month_count)
+    return period_key
+
+
+def build_period_definitions(years):
+    period_definitions = []
+    for period_key, month_count in ROLLING_PERIOD_MONTHS:
+        period_definitions.append(
+            {
+                "key": period_key,
+                "label": format_period_label(period_key),
+                "type": "rolling_months",
+                "months": month_count,
+            }
+        )
+    for year in years:
+        period_definitions.append(
+            {
+                "key": str(year),
+                "label": str(year),
+                "type": "calendar_year",
+                "year": year,
+            }
+        )
+    return period_definitions
 
 
 def blank_species_counts():
@@ -193,20 +273,28 @@ def load_publish_data(path):
     }
 
 
-def build_metadata(publish_data):
+def build_metadata(publish_data, site_project_config):
+    configured_project_name = (site_project_config.get("project_name") or "").strip()
+    project_name = configured_project_name or publish_data["project_name"]
+    about = resolve_about_content(site_project_config.get("about") or {})
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "project": {
+            "name": project_name,
+            "about": about,
+        },
         "source": {
-            "project": publish_data["project_name"],
+            "project": project_name,
             "published_from": "data/published/annual/all_project_data_*.csv",
         },
         "defaults": {
             "species": SPECIES_COLLECTION_RAT,
-            "period": "last_6_months",
+            "period": DEFAULT_PERIOD_KEY,
         },
         "species": SITE_SPECIES,
         "years": publish_data["years"],
+        "periods": build_period_definitions(publish_data["years"]),
         "date_range": {
             "start": publish_data["first_date"].isoformat(),
             "end": publish_data["last_date"].isoformat(),
@@ -278,17 +366,14 @@ def trim_trailing_zero_weeks(year_series):
     return result
 
 
-def build_summary_json(publish_data):
-    max_date = publish_data["last_date"]
-    current_start = shift_months(max_date, -6)
+def build_rolling_period_summary(rows, max_date, months):
+    current_start = shift_months(max_date, -months)
     previous_start = shift_months(current_start, -12)
     previous_end = shift_months(max_date, -12)
-    latest_year = publish_data["last_date"].year
 
-    periods = {}
-    current_totals = get_period_totals(publish_data["dated_rows"], current_start, max_date)
-    previous_totals = get_period_totals(publish_data["dated_rows"], previous_start, previous_end)
-    periods["last_6_months"] = {
+    current_totals = get_period_totals(rows, current_start, max_date)
+    previous_totals = get_period_totals(rows, previous_start, previous_end)
+    return {
         "species_totals": current_totals,
         "trend": get_trend(current_totals, previous_totals),
         "trend_context": {
@@ -304,6 +389,19 @@ def build_summary_json(publish_data):
             },
         },
     }
+
+
+def build_summary_json(publish_data):
+    max_date = publish_data["last_date"]
+    latest_year = publish_data["last_date"].year
+
+    periods = {}
+    for period_key, month_count in ROLLING_PERIOD_MONTHS:
+        periods[period_key] = build_rolling_period_summary(
+            publish_data["dated_rows"],
+            max_date,
+            month_count,
+        )
 
     for year in publish_data["years"]:
         year_start = date(year, 1, 1)
@@ -383,9 +481,10 @@ def main():
         LOGGER.info("cwd: %s", os.getcwd())
 
         publish_data = load_publish_data(args.path)
+        site_project_config = load_site_project_config(DEFAULT_SITE_PROJECT_CONFIG_PATH)
         output_folder = ensure_folder(args.output_folder)
 
-        metadata = build_metadata(publish_data)
+        metadata = build_metadata(publish_data, site_project_config)
         weekly = build_weekly_json(publish_data)
         yearly_comparison = build_yearly_comparison_json(publish_data)
         summary = build_summary_json(publish_data)

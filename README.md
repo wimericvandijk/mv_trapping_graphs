@@ -19,7 +19,7 @@ The project currently has a working transform and publish pipeline.
 - Loads trap/species validation policy from `config/trap_species_rules.json`.
 - Publishes dashboard JSON files into `site/data` from the annual cleaned CSV files.
 - Reuses a shared script logging helper across script entry points.
-- Includes a working static dashboard in `site` with species navigation, period selection, weekly bars, all-years comparison lines, and chart expand or close controls.
+- Includes a working static dashboard in `site` with species navigation, an ordered rolling-period and year control, weekly bars, all-years comparison lines, chart expand or close controls, and a project-information panel.
 
 ## Current Outputs
 
@@ -41,6 +41,8 @@ The main outputs from `scripts/publish/publish_to_json.py` are:
 - `site/data/weekly.json`
 - `site/data/yearly_comparison.json`
 - `site/data/summary.json`
+
+`metadata.json` now also carries public project information sourced from `config/site_project.json`, including markdown-backed about content from `docs/project_about.md`.
 
 `invalid_records.csv` currently records two review cases:
 
@@ -65,6 +67,13 @@ The detailed internal review CSV under `data/review/annual` retains the broader 
 
 The data-cleaning, annualisation, JSON publish stage, and first dashboard UI are working.
 
+The current dashboard now supports these period options in order:
+
+- `Last 3 months`
+- `Last 6 months`
+- `Last 12 months`
+- calendar years from oldest to most recent available year
+
 The next major step is to refine dashboard behavior, visual polish, and analytics semantics rather than to create the first page from scratch.
 
 ## Main Files
@@ -78,6 +87,8 @@ The next major step is to refine dashboard behavior, visual polish, and analytic
 - `site/index.html`: dashboard structure
 - `site/style.css`: dashboard styling
 - `site/app.js`: dashboard client-side behavior and chart rendering
+- `config/site_project.json`: public project name and about-text source for published site metadata
+- `docs/project_about.md`: markdown content source for the project-information panel
 - `config/trap_species_rules.json`: trap/species policy rules
 - `config/README.md`: explanation of the rules file
 - `docs/site_data_formats.md`: JSON contract for the published site data

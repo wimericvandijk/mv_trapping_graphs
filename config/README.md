@@ -11,6 +11,26 @@
 
 The importer logs a masked request URL using `<API_KEY>` and `<project_id>` placeholders so the query shape remains visible without exposing credentials.
 
+`queries`
+
+- `trap_list`, `recent_records`, and `all_records` are the normal built-in examples.
+- Additional query entries may include a `cql_filter` to narrow the Trap.NZ export.
+- A query may also use a full `url` instead of `type_name` when a hand-built WFS request is needed.
+
+## Site Project
+
+`site_project.json` holds public project identity and about-text source information for the dashboard site.
+
+- `project_name` is the preferred displayed project name for the site header and published site metadata.
+- `about.summary` holds short public descriptive text for the site project-information panel.
+- `about.source_path` can point to a fuller source document when the site should reference rather than duplicate the longer project background.
+
+Current usage
+
+- `scripts/publish/publish_to_json.py` reads `site_project.json` and publishes it into `site/data/metadata.json`.
+- `site/app.js` reads the published project name from `site/data/metadata.json` rather than relying on hard-coded HTML text.
+- The local site shows a header button that opens a project-information panel using the published `project.about` fields.
+
 ## Trap Species Rules
 
 `trap_species_rules.json` defines the policy used by `scripts/transform/annualise_csv.py` when deciding whether a catch should be flagged as `wrong trap type`.

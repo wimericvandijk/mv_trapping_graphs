@@ -1,6 +1,14 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-15T13:42:24Z",
+  "generated_at": "2026-08-15T23:25:19Z",
+  "project": {
+    "name": "Marsden Valley Trapping Group",
+    "about": {
+      "source_path": "docs/project_about.md",
+      "source_format": ".md",
+      "content_markdown": "The Marsden Valley Trapping Group runs community trapping activity in Marsden Valley New Zealand and uses this dashboard to publish public trapping trends from Trap.NZ data.\nFollow the group on [the Marsden Valley Trapping Group Facebook page](https://www.facebook.com/groups/991610803052734/).\n\nThis site focuses on simple views of catch history:\n\n- weekly catches for the selected species and period\n- same-species comparison across available years\n- summary totals and trend indicators for rolling periods and calendar years\n\nThe current dashboard is intended as a public summary view rather than a full operational analysis tool."
+    }
+  },
   "source": {
     "project": "Marsden Valley Trapping Group",
     "published_from": "data/published/annual/all_project_data_*.csv"
@@ -26,9 +34,77 @@
     2025,
     2026
   ],
+  "periods": [
+    {
+      "key": "last_3_months",
+      "label": "Last 3 months",
+      "type": "rolling_months",
+      "months": 3
+    },
+    {
+      "key": "last_6_months",
+      "label": "Last 6 months",
+      "type": "rolling_months",
+      "months": 6
+    },
+    {
+      "key": "last_12_months",
+      "label": "Last 12 months",
+      "type": "rolling_months",
+      "months": 12
+    },
+    {
+      "key": "2019",
+      "label": "2019",
+      "type": "calendar_year",
+      "year": 2019
+    },
+    {
+      "key": "2020",
+      "label": "2020",
+      "type": "calendar_year",
+      "year": 2020
+    },
+    {
+      "key": "2021",
+      "label": "2021",
+      "type": "calendar_year",
+      "year": 2021
+    },
+    {
+      "key": "2022",
+      "label": "2022",
+      "type": "calendar_year",
+      "year": 2022
+    },
+    {
+      "key": "2023",
+      "label": "2023",
+      "type": "calendar_year",
+      "year": 2023
+    },
+    {
+      "key": "2024",
+      "label": "2024",
+      "type": "calendar_year",
+      "year": 2024
+    },
+    {
+      "key": "2025",
+      "label": "2025",
+      "type": "calendar_year",
+      "year": 2025
+    },
+    {
+      "key": "2026",
+      "label": "2026",
+      "type": "calendar_year",
+      "year": 2026
+    }
+  ],
   "date_range": {
     "start": "2019-09-13",
-    "end": "2026-08-14"
+    "end": "2026-08-08"
   },
   "notes": {
     "includes_overwritten_rows": false,

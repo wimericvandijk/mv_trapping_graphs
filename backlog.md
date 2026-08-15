@@ -19,6 +19,9 @@ This file tracks the current plan for the trapping dashboard project.
 - A first site publisher now generates JSON into `site/data` from the annual cleaned CSV files.
 - Shared logging setup is extracted into `scripts/script_logging.py`.
 - A first dashboard page now exists in `site`.
+- The weekly chart period selector now supports ordered rolling 3, 6, and 12 month options followed by available years.
+- The period selector has been restyled as a clearer clickable control.
+- A project-information panel is now available from a button in the page header, using public content from `config/site_project.json` and markdown content from `docs/project_about.md`.
 - The all-years comparison chart supports year toggles and expand or close behavior.
 - Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
 - The current dashboard layout, chart expansion behavior, and trend logic are good enough for review.
@@ -27,8 +30,7 @@ This file tracks the current plan for the trapping dashboard project.
 
 1. Prepare GitHub Pages hosting flow.
 2. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
-3. Add a simple button or menu-triggered project-information panel with basic formatted text and links for project background and contact details.
-4. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
+3. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 
 ## Later Analytics
 
