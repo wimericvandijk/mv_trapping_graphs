@@ -1,0 +1,62 @@
+name: Publish Static Site To Public Repo
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-public-site
+  cancel-in-progress: true
+
+jobs:
+  publish-site:
+    runs-on: ubuntu-latest
+    env:
+      PUBLIC_SITE_REPO: ${{ vars.PUBLIC_SITE_REPO }}
+      PUBLIC_SITE_BRANCH: ${{ vars.PUBLIC_SITE_BRANCH }}
+      PUBLIC_SITE_DEPLOY_TOKEN: ${{ secrets.PUBLIC_SITE_DEPLOY_TOKEN }}
+
+    steps:
+      - name: Check out private development repository
+        uses: actions/checkout@v4
+
+      - name: Validate publish configuration
+        run: |
+          if [ -z "$PUBLIC_SITE_REPO" ]; then
+            echo "Repository variable PUBLIC_SITE_REPO is required, for example org-name/public-site-repo"
+            exit 1
+          fi
+          if [ -z "$PUBLIC_SITE_DEPLOY_TOKEN" ]; then
+            echo "Repository secret PUBLIC_SITE_DEPLOY_TOKEN is required"
+            exit 1
+          fi
+          if [ -z "$PUBLIC_SITE_BRANCH" ]; then
+            echo "PUBLIC_SITE_BRANCH not set, defaulting to main"
+            echo "PUBLIC_SITE_BRANCH=main" >> "$GITHUB_ENV"
+          else
+            echo "PUBLIC_SITE_BRANCH=$PUBLIC_SITE_BRANCH" >> "$GITHUB_ENV"
+          fi
+
+      - name: Clone public site repository
+        run: |
+          git clone "https://x-access-token:${PUBLIC_SITE_DEPLOY_TOKEN}@github.com/${PUBLIC_SITE_REPO}.git" public-site
+
+      - name: Sync built site into public repository
+        run: |
+          rsync -av --delete --exclude ".git/" site/ public-site/
+
+      - name: Commit and push site updates
+        working-directory: public-site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$PUBLIC_SITE_BRANCH"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No public site changes to publish"
+            exit 0
+          fi
+          git commit -m "Publish site from private development repo"
+          git push origin "HEAD:${PUBLIC_SITE_BRANCH}"

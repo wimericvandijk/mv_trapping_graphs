@@ -144,10 +144,20 @@ The current Python import, transform, and publish scripts are intentionally sing
 
 The repository now includes a nightly refresh workflow at `.github/workflows/nightly-update.yml`.
 
+It also now includes an optional cross-repository publish workflow at `.github/workflows/publish-public-site.yml` for a private-development to public-site setup.
+
+That workflow is currently manual-only so it can be enabled safely before the public repository and organisation setup are finished.
+
 It requires these repository secrets:
 
 - `TRAPNZ_API_KEY`
 - `TRAPNZ_PROJECT_ID`
+- `PUBLIC_SITE_DEPLOY_TOKEN` for cross-repository publish to a public site repo
+
+It requires these repository variables for cross-repository publish:
+
+- `PUBLIC_SITE_REPO`, for example `org-name/public-site-repo`
+- `PUBLIC_SITE_BRANCH`, usually `main`
 
 Workflow behavior:
 
@@ -155,6 +165,18 @@ Workflow behavior:
 - On a cache miss, it bootstraps by importing `all_records`, then runs the full transform and publish steps.
 - It commits refreshed `site/data/metadata.json`, `site/data/weekly.json`, `site/data/yearly_comparison.json`, and `site/data/summary.json` back to `main`.
 - The existing Pages deploy workflow then publishes the updated site from that push.
+- The optional cross-repository publish workflow can instead copy the built `site/` folder into a separate public repository owned by an organisation or another GitHub account.
+- It currently runs only from `workflow_dispatch`, so the first public-site setup can be tested explicitly rather than on every push to `main`.
+
+Recommended private-development to public-site setup:
+
+1. Keep this repository as the private development repository.
+2. Create a separate public repository to hold only the published static site.
+3. Create a fine-grained personal access token or organisation-owned token that can write to the public repository.
+4. Store that token in this repository as `PUBLIC_SITE_DEPLOY_TOKEN`.
+5. Set `PUBLIC_SITE_REPO` to the target `owner/repo` name and `PUBLIC_SITE_BRANCH` to the target branch, usually `main`.
+6. Enable GitHub Pages in the public repository using the published branch root.
+7. Run the `Publish Static Site To Public Repo` workflow manually once the target public repository exists.
 
 Troubleshooting:
 
@@ -162,12 +184,16 @@ Troubleshooting:
 - If the recent-only refresh path fails on a new runner, the workflow should fall back to a full bootstrap import on cache miss. Check whether the `data/review/annual` cache restored successfully.
 - If the workflow runs but commits no changes, inspect the workflow logs to confirm whether Trap.NZ returned new data and whether the published JSON files actually changed.
 - If the workflow commits updated site data but the site does not change, check the `Deploy Dashboard To GitHub Pages` workflow to confirm the subsequent Pages deployment succeeded.
+- If the cross-repository publish workflow fails before cloning, verify `PUBLIC_SITE_REPO` and `PUBLIC_SITE_DEPLOY_TOKEN` are configured in the private repository.
+- If the cross-repository publish workflow fails to push, verify that the token can write to the target public repository and that the target branch already exists.
 
 ## Review URL
 
 The current external review build is available at:
 
 - `https://wimericvandijk.github.io/mv_trapping_graphs/`
+
+For an organisation-owned public site, the URL would move to that public repository's GitHub Pages address or custom domain.
 
 ## Intended Direction
 

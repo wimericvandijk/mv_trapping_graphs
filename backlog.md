@@ -22,13 +22,14 @@ This file tracks the current plan for the trapping dashboard project.
 - The weekly chart period selector now supports ordered rolling 3, 6, and 12 month options followed by available years.
 - The period selector has been restyled as a clearer clickable control.
 - A project-information panel is now available from a button in the page header, using public content from `config/site_project.json` and markdown content from `docs/project_about.md`.
+- A cross-repository publish workflow now exists for a private-development to public-site repository split, and it is currently manual-only until the public repository setup is complete.
 - The all-years comparison chart supports year toggles and expand or close behavior.
 - Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
 - The current dashboard layout, chart expansion behavior, and trend logic are good enough for review.
 
 ## Planned Work
 
-1. Prepare GitHub Pages hosting flow.
+1. Create or confirm the organisation-owned public GitHub repository and configure `PUBLIC_SITE_REPO`, `PUBLIC_SITE_BRANCH`, and `PUBLIC_SITE_DEPLOY_TOKEN` in the private development repository.
 2. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
 3. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 
