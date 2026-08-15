@@ -71,9 +71,22 @@ TRAP_TYPE_COL = "trap_type"
 TRAP_SUB_TYPE_COL = "trap_sub_type"
 RULE_BROKEN_COL = "rule_broken"
 DEFAULT_RULES_CONFIG = "../../config/trap_species_rules.json"
+DEFAULT_REVIEW_OUTPUT_FOLDER = "../../data/review/annual"
 
 REQUIRED_RECORD_COLS = [TRAP_ID_COL, TRAP_CODE_COL, DATE_COL]
 REQUIRED_TRAP_COLS = [TRAP_ID_COL, "code", TRAP_TYPE_COL]
+PRIVATE_COLS = ['recorded_by', 'username']
+PUBLIC_RECORD_FIELDNAMES = [
+    "project",
+    DATE_COL,
+    TRAP_TYPE_COL,
+    "strikes",
+    SPECIES_COL,
+    "clean_datestamp",
+    "clean_rule_status",
+    RULE_BROKEN_COL,
+    "clean_rule_reason",
+]
 
 SPECIES_SYNONYMS = {
     "": SPECIES_NONE,
@@ -154,6 +167,17 @@ def get_latest_timestamp_in(year_data):
     return result, latest
 
 
+def get_public_fieldnames(fieldnames):
+    return [fieldname for fieldname in PUBLIC_RECORD_FIELDNAMES if fieldname in fieldnames]
+
+
+def project_public_rows(rows, fieldnames):
+    return [
+        {fieldname: row.get(fieldname, "") for fieldname in fieldnames}
+        for row in rows
+    ]
+
+
 def save_annual_csv(fieldnames, csv_data, output_folder):
     """
     Writes annualised csv files into output_folder.
@@ -168,6 +192,7 @@ def save_annual_csv(fieldnames, csv_data, output_folder):
     """
 
     result = []
+    public_fieldnames = get_public_fieldnames(fieldnames)
     year_data = defaultdict(list)
     for datestamp in sorted(csv_data):
         lines = csv_data[datestamp]
@@ -188,12 +213,12 @@ def save_annual_csv(fieldnames, csv_data, output_folder):
         if days_to_eoy > 10:
             output_file_base += '_to_{}'.format(latest_dt.strftime("%Y-%m-%d"))
         output_file = output_file_base + '.csv'
-        write_rows(output_file, fieldnames, output_rows)
+        write_rows(output_file, public_fieldnames, project_public_rows(output_rows, public_fieldnames))
         LOGGER.info("saved %d lines to %s, latest timestamp= %s", len(output_rows) + 1, output_file,
                     latest_timestamp)
         result.append(output_file)
     all_output_file = "{}/all_data.csv".format(output_folder)
-    write_rows(all_output_file, fieldnames, all_output_rows)
+    write_rows(all_output_file, public_fieldnames, project_public_rows(all_output_rows, public_fieldnames))
     result.append(all_output_file)
     LOGGER.info("saved %d lines to %s", len(all_output_rows) + 1, all_output_file)
     return result
@@ -223,6 +248,13 @@ def normalise_trap_type(trap_type):
 def normalise_species(species):
     value = (species or "").strip()
     return SPECIES_SYNONYMS.get(value.lower(), value or "None")
+
+
+def sanitise_project_name(project_name):
+    value = (project_name or "").strip()
+    if not value:
+        return ""
+    return value.split(",", 1)[0].strip()
 
 
 def expand_species_entries(entries, species_collections):
@@ -298,17 +330,24 @@ def load_trap_lookup(trap_files):
             missing_cols = [col for col in REQUIRED_TRAP_COLS if col not in reader.fieldnames]
             if missing_cols:
                 raise ValueError("{} missing trap columns {}".format(basename_only, missing_cols))
+            
             for row in reader:
                 trap_id = (row.get(TRAP_ID_COL) or "").strip()
                 if not trap_id:
                     continue
                 row[TRAP_TYPE_COL] = normalise_trap_type(row.get(TRAP_TYPE_COL))
+                for private_col in PRIVATE_COLS:
+                    row[private_col] = ""
                 trap_lookup[trap_id] = row
     return trap_lookup
 
 
 def cleanse_record(row, trap_lookup):
     cleaned = dict(row)
+    for private_col in PRIVATE_COLS:
+        cleaned[private_col] = ""
+    if "project" in cleaned:
+        cleaned["project"] = sanitise_project_name(cleaned.get("project"))
     cleaned[SPECIES_COL] = normalise_species(cleaned.get(SPECIES_COL))
     trap_id = (cleaned.get(TRAP_ID_COL) or "").strip()
     trap_meta = trap_lookup.get(trap_id)
@@ -437,8 +476,19 @@ def save_invalid_rows(invalid_rows, output_folder):
         LOGGER.info("no invalid trap/species rows found")
         return None
     output_file = os.path.join(output_folder, "invalid_records.csv")
-    write_rows(output_file, list(invalid_rows[0].keys()), invalid_rows)
+    public_fieldnames = get_public_fieldnames(invalid_rows[0].keys())
+    write_rows(output_file, public_fieldnames, project_public_rows(invalid_rows, public_fieldnames))
     LOGGER.info("saved %d invalid rows to %s", len(invalid_rows), output_file)
+    return output_file
+
+
+def save_review_rows(invalid_rows, output_folder):
+    if not invalid_rows:
+        return None
+    review_folder = __ensure_folder(output_folder)
+    output_file = os.path.join(review_folder, "invalid_records.csv")
+    write_rows(output_file, list(invalid_rows[0].keys()), invalid_rows)
+    LOGGER.info("saved %d detailed invalid rows to %s", len(invalid_rows), output_file)
     return output_file
 
 
@@ -475,6 +525,12 @@ def get_cmd_args(title):
         help="json file containing trap/species policy rules",
         default=DEFAULT_RULES_CONFIG,
     )
+    parser.add_argument(
+        "-rof",
+        "--review_output_folder",
+        help="folder to save detailed internal review csv outputs to",
+        default=DEFAULT_REVIEW_OUTPUT_FOLDER,
+    )
     return parser.parse_args()
 
 
@@ -504,6 +560,7 @@ def main():
         fieldnames, csv_data, invalid_rows = get_csv_data(args.path)
         save_annual_csv(fieldnames, csv_data, output_folder)
         save_invalid_rows(invalid_rows, output_folder)
+        save_review_rows(invalid_rows, args.review_output_folder)
     finally:
         if initial_wd != base_folder:
             os.chdir(initial_wd)

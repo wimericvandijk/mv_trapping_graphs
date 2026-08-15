@@ -16,7 +16,8 @@ The aim is to support the initial dashboard requirements from the project summar
 
 - JSON should be pre-aggregated for the browser.
 - Published files should be stable and versioned.
-- Source detail stays in cleaned CSV files under `data/published/annual`.
+- Public annual CSVs in `data/published/annual` should keep only the privacy-safe fields needed for publication.
+- Detailed invalid review rows should be kept separately under `data/review/annual` rather than in public published outputs.
 - The publish layer should use the annual cleaned CSV files as its primary input, not `all_data.csv`.
 - Site files in `site/data` should only contain the fields needed by the dashboard.
 - Species names and trap type names must use canonical values from `domain_constants.py`.
@@ -244,3 +245,8 @@ Why this is preferred:
 - makes rolling-window calculations possible with only the needed year files
 
 `all_data.csv` can remain as a convenience export for inspection, but it should not be the primary input to the publish layer.
+
+Privacy note:
+
+- The public annual CSV files are now privacy-filtered and intentionally contain only the publication whitelist used by downstream publishing.
+- Detailed invalid review rows belong under `data/review/annual`, not under the published site data path.

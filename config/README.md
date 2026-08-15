@@ -18,7 +18,8 @@
 How the rule is applied
 - The script expands collection names first.
 - If a caught species is not in `restricted_species`, the record passes this rule.
-- If a caught species is in `restricted_species` but not in the trap type's allowed list, the record is written to `invalid_records.csv` with `rule_broken=wrong trap type`.
+- If a caught species is in `restricted_species` but not in the trap type's allowed list, a privacy-filtered row is written to `data/published/annual/invalid_records.csv` with `rule_broken=wrong trap type`.
+- The corresponding detailed review row is written to `data/review/annual/invalid_records.csv` for internal operational follow-up.
 
 Current usage
 - `scripts/transform/annualise_csv.py` uses this file during raw-data cleansing.

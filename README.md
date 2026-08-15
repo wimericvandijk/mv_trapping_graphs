@@ -11,8 +11,9 @@ The project currently has a working transform and publish pipeline.
 - Normalizes species and trap type names from raw source values.
 - Applies data-cleansing business rules before publication.
 - Keeps only the last report for the same trap on the same day.
-- Flags invalid records into a separate review file.
-- Writes annual cleaned CSV outputs and a combined `all_data.csv` into `data/published/annual`.
+- Publishes privacy-filtered annual CSV outputs using an explicit public column whitelist.
+- Writes public annual CSV outputs and a combined `all_data.csv` into `data/published/annual`.
+- Writes detailed invalid review rows into `data/review/annual`.
 - Loads trap/species validation policy from `config/trap_species_rules.json`.
 - Publishes dashboard JSON files into `site/data` from the annual cleaned CSV files.
 - Reuses a shared script logging helper across script entry points.
@@ -26,6 +27,7 @@ The main outputs from `scripts/transform/annualise_csv.py` are:
 - `data/published/annual/all_project_data_<year>_to_<date>.csv` for partial years
 - `data/published/annual/all_data.csv`
 - `data/published/annual/invalid_records.csv`
+- `data/review/annual/invalid_records.csv`
 
 The main outputs from `scripts/publish/publish_to_json.py` are:
 
@@ -38,6 +40,20 @@ The main outputs from `scripts/publish/publish_to_json.py` are:
 
 - `wrong trap type`
 - `overwritten`
+
+The public CSV outputs in `data/published/annual` now keep only these fields:
+
+- `project`
+- `record_date`
+- `trap_type`
+- `strikes`
+- `species_caught`
+- `clean_datestamp`
+- `clean_rule_status`
+- `rule_broken`
+- `clean_rule_reason`
+
+The detailed internal review CSV under `data/review/annual` retains the broader cleaned row needed for operational review.
 
 ## Current Project State
 
