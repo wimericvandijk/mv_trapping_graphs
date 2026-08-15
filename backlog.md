@@ -28,6 +28,7 @@ This file tracks the current plan for the trapping dashboard project.
 1. Prepare GitHub Pages hosting flow.
 2. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
 3. Add a simple button or menu-triggered project-information panel with basic formatted text and links for project background and contact details.
+4. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 
 ## Later Analytics
 

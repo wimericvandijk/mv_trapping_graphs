@@ -34,6 +34,7 @@ The first site data contract should consist of four files:
 ## 1. metadata.json
 
 Purpose:
+
 - describes the published dataset
 - tells the site which species and years are available
 - supports default filters and labels
@@ -74,6 +75,7 @@ Format:
 ## 2. weekly.json
 
 Purpose:
+
 - drives the main weekly catches chart for a selected species and period
 - also supports totals for the same filtered period
 
@@ -100,6 +102,7 @@ Format:
 ```
 
 Notes:
+
 - One row per week across the full dataset.
 - `Mustelid` is the combined total of stoat, weasel, and ferret.
 - `All Species` means all actual catches excluding `None` and `Unspecified`.
@@ -108,6 +111,7 @@ Notes:
 ## 3. yearly_comparison.json
 
 Purpose:
+
 - supports the same-species all-years comparison chart
 - allows comparison of seasonal shape by week number
 
@@ -140,6 +144,7 @@ Format:
 ```
 
 Notes:
+
 - Arrays are ordered by ISO week number.
 - Missing weeks inside an observed year's range should be filled with `0`.
 - Weeks outside an observed year's range may be `null` so incomplete years stop at the last available data point instead of implying zero catches.
@@ -148,6 +153,7 @@ Notes:
 ## 4. summary.json
 
 Purpose:
+
 - supports totals cards and trend indicators
 - avoids recalculating headline values in the browser
 
@@ -190,6 +196,7 @@ Format:
 ```
 
 Notes:
+
 - `last_6_months` should be the default dashboard period.
 - For `last_6_months`, trend should compare against the same 6-month season one year earlier.
 - For annual periods from 2020 onward, trend should compare against the previous calendar year.
