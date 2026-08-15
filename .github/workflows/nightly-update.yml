@@ -64,11 +64,24 @@ jobs:
 
       - name: Commit refreshed site data
         run: |
+          mkdir -p /tmp/site-data
+          cp site/data/metadata.json /tmp/site-data/metadata.json
+          cp site/data/weekly.json /tmp/site-data/weekly.json
+          cp site/data/yearly_comparison.json /tmp/site-data/yearly_comparison.json
+          cp site/data/summary.json /tmp/site-data/summary.json
+
+          git fetch origin main
+          git reset --hard origin/main
+
+          cp /tmp/site-data/metadata.json site/data/metadata.json
+          cp /tmp/site-data/weekly.json site/data/weekly.json
+          cp /tmp/site-data/yearly_comparison.json site/data/yearly_comparison.json
+          cp /tmp/site-data/summary.json site/data/summary.json
+
           git add site/data/metadata.json site/data/weekly.json site/data/yearly_comparison.json site/data/summary.json
           if git diff --cached --quiet; then
             echo "No site data changes to commit"
             exit 0
           fi
           git commit -m "Nightly data refresh"
-          git pull --rebase origin main
           git push origin HEAD:main
