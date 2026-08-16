@@ -8,6 +8,7 @@ This runbook covers the current public-site deployment arrangement for the trapp
 - Public site repository: `MarsdenValleyTrappers/trapping_graphs`
 - Public site URL: `https://marsdenvalleytrappers.github.io/trapping_graphs/`
 - Publish workflow: `.github/workflows/publish-public-site.yml`
+- Publish workflow triggers: push to `main`, successful completion of `Nightly Data Refresh`, or manual `workflow_dispatch`
 - Workflow secret used for cross-repository publish: `PUBLIC_SITE_DEPLOY_TOKEN`
 - Current token owner: `MarsdenValley` GitHub user
 

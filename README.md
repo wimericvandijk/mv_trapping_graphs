@@ -166,7 +166,7 @@ Workflow behavior:
 - It commits refreshed `site/data/metadata.json`, `site/data/weekly.json`, `site/data/yearly_comparison.json`, and `site/data/summary.json` back to `main`.
 - The existing Pages deploy workflow then publishes the updated site from that push.
 - The optional cross-repository publish workflow can instead copy the built `site/` folder into a separate public repository owned by an organisation or another GitHub account.
-- It now runs automatically on pushes to `main` and can also be run manually with `workflow_dispatch`.
+- It now runs automatically on pushes to `main`, also runs after a successful `Nightly Data Refresh` workflow, and can still be run manually with `workflow_dispatch`.
 
 Recommended private-development to public-site setup:
 
