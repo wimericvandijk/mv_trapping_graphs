@@ -146,8 +146,6 @@ The repository now includes a nightly refresh workflow at `.github/workflows/nig
 
 It also now includes an optional cross-repository publish workflow at `.github/workflows/publish-public-site.yml` for a private-development to public-site setup.
 
-That workflow is currently manual-only so it can be enabled safely before the public repository and organisation setup are finished.
-
 It requires these repository secrets:
 
 - `TRAPNZ_API_KEY`
@@ -156,7 +154,7 @@ It requires these repository secrets:
 
 It requires these repository variables for cross-repository publish:
 
-- `PUBLIC_SITE_REPO`, set this to `MarsdenValley/trapping_graphs`
+- `PUBLIC_SITE_REPO`, set this to `MarsdenValleyTrappers/trapping_graphs`
 - `PUBLIC_SITE_BRANCH`, usually `main`
 
 Workflow behavior:
@@ -166,17 +164,29 @@ Workflow behavior:
 - It commits refreshed `site/data/metadata.json`, `site/data/weekly.json`, `site/data/yearly_comparison.json`, and `site/data/summary.json` back to `main`.
 - The existing Pages deploy workflow then publishes the updated site from that push.
 - The optional cross-repository publish workflow can instead copy the built `site/` folder into a separate public repository owned by an organisation or another GitHub account.
-- It currently runs only from `workflow_dispatch`, so the first public-site setup can be tested explicitly rather than on every push to `main`.
+- It now runs automatically on pushes to `main` and can also be run manually with `workflow_dispatch`.
 
 Recommended private-development to public-site setup:
 
 1. Keep this repository as the private development repository.
-2. Use the separate public repository `MarsdenValley/trapping_graphs` to hold only the published static site.
-3. Create a fine-grained personal access token or organisation-owned token that can write to the public repository.
-4. Store that token in this repository as `PUBLIC_SITE_DEPLOY_TOKEN`.
-5. Set `PUBLIC_SITE_REPO` to `MarsdenValley/trapping_graphs` and `PUBLIC_SITE_BRANCH` to the target branch, usually `main`.
+2. Use the separate public repository `MarsdenValleyTrappers/trapping_graphs` to hold only the published static site.
+3. Create a classic personal access token from the `MarsdenValley` GitHub user or another dedicated automation account that can write to the public repository.
+4. Store that token in this private development repository as `PUBLIC_SITE_DEPLOY_TOKEN`.
+5. Set `PUBLIC_SITE_REPO` to `MarsdenValleyTrappers/trapping_graphs` and `PUBLIC_SITE_BRANCH` to the target branch, usually `main`.
 6. Enable GitHub Pages in the public repository using the published branch root.
-7. Run the `Publish Static Site To Public Repo` workflow manually once the target public repository exists.
+7. The `Publish Static Site To Public Repo` workflow can be run manually for testing and now also runs automatically on pushes to `main`.
+
+Current working deployment setup:
+
+- the private development repository runs the publish workflow
+- `PUBLIC_SITE_DEPLOY_TOKEN` is currently a classic PAT created from the `MarsdenValley` GitHub user
+- that secret is stored in the private repository and is used to push the built `site/` output into `MarsdenValleyTrappers/trapping_graphs`
+
+Token rotation note:
+
+- if an older token from another account is no longer referenced by `PUBLIC_SITE_DEPLOY_TOKEN` and is not used elsewhere, it can be revoked
+- the public site remains live if the token expires, but future publish workflow runs will fail until the secret is replaced with a new valid token
+- rotate the deployment token before expiry, update `PUBLIC_SITE_DEPLOY_TOKEN`, run the publish workflow once to confirm it still works, then revoke the old token
 
 Troubleshooting:
 
@@ -189,15 +199,15 @@ Troubleshooting:
 
 ## Review URL
 
-The current external review build is available at:
+The current public site is available at:
+
+- `https://marsdenvalleytrappers.github.io/trapping_graphs/`
+
+The earlier personal review URL was:
 
 - `https://wimericvandijk.github.io/mv_trapping_graphs/`
 
-For an organisation-owned public site, the URL would move to that public repository's GitHub Pages address or custom domain.
-
-For the currently identified public repository, the expected GitHub Pages URL would normally be:
-
-- `https://marsdenvalley.github.io/trapping_graphs/`
+The organisation-owned public site is now published from `MarsdenValleyTrappers/trapping_graphs` on GitHub Pages.
 
 ## Intended Direction
 

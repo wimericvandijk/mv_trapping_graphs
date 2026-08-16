@@ -22,16 +22,17 @@ This file tracks the current plan for the trapping dashboard project.
 - The weekly chart period selector now supports ordered rolling 3, 6, and 12 month options followed by available years.
 - The period selector has been restyled as a clearer clickable control.
 - A project-information panel is now available from a button in the page header, using public content from `config/site_project.json` and markdown content from `docs/project_about.md`.
-- A cross-repository publish workflow now exists for a private-development to public-site repository split, and it is currently manual-only until the public repository setup is complete.
+- A cross-repository publish workflow now exists for a private-development to public-site repository split and now republishes the public site from pushes to `main`.
+- The public site is now published from `MarsdenValleyTrappers/trapping_graphs` at `https://marsdenvalleytrappers.github.io/trapping_graphs/`.
+- The private development repo can now publish to the public repo using `PUBLIC_SITE_DEPLOY_TOKEN`, currently backed by a classic PAT from the `MarsdenValley` GitHub user.
 - The all-years comparison chart supports year toggles and expand or close behavior.
 - Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
 - The current dashboard layout, chart expansion behavior, and trend logic are good enough for review.
 
 ## Planned Work
 
-1. Configure `PUBLIC_SITE_REPO=MarsdenValley/trapping_graphs`, `PUBLIC_SITE_BRANCH`, and `PUBLIC_SITE_DEPLOY_TOKEN` in the private development repository, then enable GitHub Pages in the public repository.
-2. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
-3. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
+1. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
+2. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 
 ## Later Analytics
 
@@ -45,7 +46,9 @@ This file tracks the current plan for the trapping dashboard project.
 ## Notes
 
 - The Word planning document is in `docs/Trapping_Dashboard_Project_Summary_v2.docx`.
-- Current review URL: `https://wimericvandijk.github.io/mv_trapping_graphs/`
+- Current public URL: `https://marsdenvalleytrappers.github.io/trapping_graphs/`
+- Earlier review URL: `https://wimericvandijk.github.io/mv_trapping_graphs/`
+- The classic PAT previously used from another account can be revoked once `PUBLIC_SITE_DEPLOY_TOKEN` has been replaced and a publish run has succeeded.
 - The current implementation is ahead of the original plan in one area: the cleansing rules and invalid-record review flow are already in place.
 - The biggest missing pieces are now dashboard polish and the next layer of analytics rather than the initial data publish or page scaffold.
 - The publish layer should use annual cleaned CSV files as input; `all_data.csv` is a convenience output rather than the preferred working source.

@@ -1,6 +1,9 @@
 name: Publish Static Site To Public Repo
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
