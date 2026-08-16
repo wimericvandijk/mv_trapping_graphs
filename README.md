@@ -20,6 +20,7 @@ The project currently has a working transform and publish pipeline.
 - Publishes dashboard JSON files into `site/data` from the annual cleaned CSV files.
 - Reuses a shared script logging helper across script entry points.
 - Includes a working static dashboard in `site` with species navigation, an ordered rolling-period and year control, weekly bars, all-years comparison lines, chart expand or close controls, and a project-information panel.
+- Documents a privacy-first plan for future bird-sightings integration from a Google Sheet controlled by the project.
 
 ## Current Outputs
 
@@ -89,6 +90,7 @@ The next major step is to refine dashboard behavior, visual polish, and analytic
 - `site/app.js`: dashboard client-side behavior and chart rendering
 - `config/site_project.json`: public project name and about-text source for published site metadata
 - `docs/project_about.md`: markdown content source for the project-information panel
+- `docs/bird_data_source.md`: privacy and schema notes for the bird-sightings Google Sheet source
 - `config/trap_species_rules.json`: trap/species policy rules
 - `config/README.md`: explanation of the rules file
 - `docs/site_data_formats.md`: JSON contract for the published site data
@@ -181,6 +183,8 @@ Current working deployment setup:
 - the private development repository runs the publish workflow
 - `PUBLIC_SITE_DEPLOY_TOKEN` is currently a classic PAT created from the `MarsdenValley` GitHub user
 - that secret is stored in the private repository and is used to push the built `site/` output into `MarsdenValleyTrappers/trapping_graphs`
+
+Step-by-step deployment and token-rotation guidance is documented in `docs/deployment_runbook.md`.
 
 Token rotation note:
 

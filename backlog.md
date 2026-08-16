@@ -34,6 +34,20 @@ This file tracks the current plan for the trapping dashboard project.
 1. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
 2. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 
+## Bird Data Notes
+
+- The current bird-sightings source is a Google Sheet under project-controlled Google Drive.
+- The sheet includes personal fields such as `Email Address` and `Name`, so the raw sheet must be treated as a private source.
+- `Comments` should also be treated as private by default because free-text may contain identifying information.
+- The first public bird dataset should likely whitelist only `date_observed`, `nearest_trap`, and `bird_species`.
+- `nearest_trap` is considered public-safe, even if it is not likely to be shown on the public webpage soon.
+- `bird_species` will need some normalization or categorisation before bird data is stable enough for dashboard use.
+- At this stage, the only bird species that appears to be counted consistently is South Island Robin.
+- Bird sightings fit the current species-selector and display model better than a separate dashboard section.
+- Bird data is expected to be sparse, so any charts or summaries need to handle low-volume observations cleanly.
+- Future implementation should use a private ingestion path and publish only filtered bird outputs.
+- See `docs/bird_data_source.md` for the current source contract and privacy rules.
+
 ## Later Analytics
 
 1. Analyse by trap line.
