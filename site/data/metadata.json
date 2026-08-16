@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-15T23:25:19Z",
+  "generated_at": "2026-08-16T13:43:13Z",
   "project": {
     "name": "Marsden Valley Trapping Group",
     "about": {
       "source_path": "docs/project_about.md",
       "source_format": ".md",
-      "content_markdown": "The Marsden Valley Trapping Group runs community trapping activity in Marsden Valley New Zealand and uses this dashboard to publish public trapping trends from Trap.NZ data.\nFollow the group on [the Marsden Valley Trapping Group Facebook page](https://www.facebook.com/groups/991610803052734/).\n\nThis site focuses on simple views of catch history:\n\n- weekly catches for the selected species and period\n- same-species comparison across available years\n- summary totals and trend indicators for rolling periods and calendar years\n\nThe current dashboard is intended as a public summary view rather than a full operational analysis tool."
+      "content_markdown": "#\n\nThe Marsden Valley Trapping Group runs community trapping activity in Marsden Valley New Zealand and uses this dashboard to publish public trapping trends from Trap.NZ data.\nFollow the group on [the Marsden Valley Trapping Group Facebook page](https://www.facebook.com/groups/991610803052734/).\n\nThis site focuses on simple views of catch history:\n\n- weekly catches for the selected species and period\n- same-species comparison across available years\n- summary totals and trend indicators for rolling periods and calendar years\n\nThe current dashboard is intended as a public summary view rather than a full operational analysis tool."
     }
   },
   "source": {
@@ -104,7 +104,7 @@
   ],
   "date_range": {
     "start": "2019-09-13",
-    "end": "2026-08-08"
+    "end": "2026-08-16"
   },
   "notes": {
     "includes_overwritten_rows": false,
