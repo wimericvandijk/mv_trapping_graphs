@@ -4260,6 +4260,18 @@
         "Mustelid": 0,
         "All Species": 30
       }
+    },
+    {
+      "week_start": "2026-08-17",
+      "week_end": "2026-08-23",
+      "year": 2026,
+      "species": {
+        "Rat": 1,
+        "Mouse": 4,
+        "Possum": 0,
+        "Mustelid": 0,
+        "All Species": 5
+      }
     }
   ]
 }
