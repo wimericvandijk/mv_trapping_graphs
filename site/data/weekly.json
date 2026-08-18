@@ -4255,10 +4255,10 @@
       "year": 2026,
       "species": {
         "Rat": 5,
-        "Mouse": 21,
+        "Mouse": 22,
         "Possum": 3,
         "Mustelid": 0,
-        "All Species": 30
+        "All Species": 31
       }
     },
     {
@@ -4267,10 +4267,10 @@
       "year": 2026,
       "species": {
         "Rat": 1,
-        "Mouse": 4,
+        "Mouse": 6,
         "Possum": 0,
         "Mustelid": 0,
-        "All Species": 5
+        "All Species": 7
       }
     }
   ]
