@@ -30,13 +30,39 @@ from script_logging import configure_script_logging
 LOGGER = logging.getLogger()
 SCHEMA_VERSION = 1
 DATE_FMTS = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M", "%Y-%m-%d"]
-SITE_SPECIES = [
-    SPECIES_COLLECTION_RAT,
-    SPECIES_MOUSE,
-    SPECIES_POSSUM,
-    SPECIES_COLLECTION_MUSTELID,
-    "All Species",
+BASE_SPECIES_DEFINITIONS = [
+    {
+        "key": SPECIES_COLLECTION_RAT,
+        "label": SPECIES_COLLECTION_RAT,
+        "measure_noun": "catches",
+        "is_pest": True,
+    },
+    {
+        "key": SPECIES_MOUSE,
+        "label": SPECIES_MOUSE,
+        "measure_noun": "catches",
+        "is_pest": True,
+    },
+    {
+        "key": SPECIES_POSSUM,
+        "label": SPECIES_POSSUM,
+        "measure_noun": "catches",
+        "is_pest": True,
+    },
+    {
+        "key": SPECIES_COLLECTION_MUSTELID,
+        "label": SPECIES_COLLECTION_MUSTELID,
+        "measure_noun": "catches",
+        "is_pest": True,
+    },
+    {
+        "key": "All Species",
+        "label": "All Pest Species",
+        "measure_noun": "catches",
+        "is_pest": True,
+    },
 ]
+BASE_SITE_SPECIES = [definition["key"] for definition in BASE_SPECIES_DEFINITIONS]
 ACTUAL_CATCH_EXCLUSIONS = {SPECIES_NONE, SPECIES_UNSPECIFIED}
 ROLLING_PERIOD_MONTHS = [
     ("last_3_months", 3),
@@ -45,15 +71,41 @@ ROLLING_PERIOD_MONTHS = [
 ]
 DEFAULT_PERIOD_KEY = "last_6_months"
 DEFAULT_SITE_PROJECT_CONFIG_PATH = "../../config/site_project.json"
+DEFAULT_BIRD_SOURCE_GLOBS = (
+    "../../data/raw/bird-sightings*.csv",
+    "../../data/raw/Observed Birds*.xlsx",
+)
+BIRD_DATE_FMTS = DATE_FMTS + [
+    "%d/%m/%Y",
+    "%d/%m/%Y %H:%M",
+    "%d/%m/%Y %H:%M:%S",
+    "%m/%d/%Y",
+    "%m/%d/%Y %H:%M",
+    "%m/%d/%Y %H:%M:%S",
+]
+BIRD_DATE_COLUMNS = ("Date observed", "date_observed")
+BIRD_SPECIES_COLUMNS = ("Bird Species", "bird_species")
+BIRD_SPECIES_SYNONYMS = {
+    "south island robin": "South Island Robin",
+    "south island robin / toutouwai": "South Island Robin",
+    "toutouwai": "South Island Robin",
+    "nz robin": "South Island Robin",
+    "new zealand robin": "South Island Robin",
+    "robin": "South Island Robin",
+}
 
 
-def parse_record_date(value):
-    for fmt in DATE_FMTS:
+def parse_datetime_value(value, formats, value_label):
+    for fmt in formats:
         try:
             return datetime.strptime(value, fmt)
         except ValueError:
             continue
-    raise ValueError("could not parse record date {}".format(value))
+    raise ValueError("could not parse {} {}".format(value_label, value))
+
+
+def parse_record_date(value):
+    return parse_datetime_value(value, DATE_FMTS, "record date")
 
 
 def get_annual_files(path):
@@ -114,8 +166,25 @@ def resolve_about_content(about_config):
     return about
 
 
-def get_site_species_counts(species, strikes):
-    counts = {site_species: 0 for site_species in SITE_SPECIES}
+def build_species_definitions(bird_species_names=None):
+    species_definitions = [dict(definition) for definition in BASE_SPECIES_DEFINITIONS]
+    for bird_species_name in bird_species_names or []:
+        display_label = bird_species_name
+        if bird_species_name == "South Island Robin":
+            display_label = "SI Robin"
+        species_definitions.append(
+            {
+                "key": bird_species_name,
+                "label": display_label,
+                "measure_noun": "observations",
+                "is_pest": False,
+            }
+        )
+    return species_definitions
+
+
+def get_site_species_counts(species, strikes, site_species):
+    counts = {site_species_name: 0 for site_species_name in site_species}
     if species in RAT_SPECIES:
         counts[SPECIES_COLLECTION_RAT] = strikes
     if species == SPECIES_MOUSE:
@@ -164,8 +233,8 @@ def build_period_definitions(years):
     return period_definitions
 
 
-def blank_species_counts():
-    return {species_name: 0 for species_name in SITE_SPECIES}
+def blank_species_counts(site_species):
+    return {species_name: 0 for species_name in site_species}
 
 
 def shift_months(source_date, months):
@@ -177,17 +246,17 @@ def shift_months(source_date, months):
     return date(target_year, target_month, target_day)
 
 
-def get_period_totals(rows, start_date, end_date):
-    totals = blank_species_counts()
+def get_period_totals(rows, start_date, end_date, site_species):
+    totals = blank_species_counts(site_species)
     for row_date, species_counts in rows:
         if start_date <= row_date <= end_date:
             add_species_counts(totals, species_counts)
     return totals
 
 
-def get_trend(current_totals, previous_totals):
+def get_trend(current_totals, previous_totals, site_species):
     trend = {}
-    for species_name in SITE_SPECIES:
+    for species_name in site_species:
         delta = current_totals[species_name] - previous_totals[species_name]
         direction = "flat"
         if delta > 0:
@@ -207,13 +276,147 @@ def write_json(output_file, payload):
         fp.write("\n")
 
 
+def get_cell_value(row, column_names):
+    for column_name in column_names:
+        value = row.get(column_name)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return ""
+
+
+def get_row_value(row, column_names):
+    for column_name in column_names:
+        value = row.get(column_name)
+        if value is not None and str(value).strip():
+            return value
+    return None
+
+
+def normalise_bird_species(species_name):
+    compact_value = " ".join((species_name or "").strip().split()).lower()
+    return BIRD_SPECIES_SYNONYMS.get(compact_value, "")
+
+
+def get_bird_workbook_rows(filename):
+    try:
+        from openpyxl import load_workbook
+    except ImportError as exc:
+        raise ImportError(
+            "openpyxl is required to read bird observation workbooks"
+        ) from exc
+
+    workbook = load_workbook(filename, read_only=True, data_only=True)
+    worksheet = workbook[workbook.sheetnames[0]]
+    row_iter = worksheet.iter_rows(values_only=True)
+    header_row = next(row_iter, None)
+    if not header_row:
+        return []
+    headers = [str(cell).strip() if cell is not None else "" for cell in header_row]
+    rows = []
+    for values in row_iter:
+        rows.append({headers[index]: value for index, value in enumerate(values) if index < len(headers)})
+    return rows
+
+
+def get_bird_csv_rows(filename):
+    with open(filename, "r", newline="", encoding="utf-8-sig") as fp:
+        return list(csv.DictReader(fp))
+
+
+def get_bird_source_files(path_globs=DEFAULT_BIRD_SOURCE_GLOBS):
+    bird_files = []
+    for path_glob in path_globs:
+        bird_files.extend(glob(path_glob))
+    bird_files = sorted({os.path.normpath(filename) for filename in bird_files})
+    if not bird_files:
+        LOGGER.info("no bird-sightings source files found for %s", ", ".join(path_globs))
+        return [], []
+
+    return bird_files
+
+
+def load_bird_observations(path_globs=DEFAULT_BIRD_SOURCE_GLOBS):
+    bird_files = get_bird_source_files(path_globs)
+    if not bird_files:
+        return [], []
+
+    observations = []
+    bird_species_names = set()
+    for filename in bird_files:
+        LOGGER.info("reading bird sightings %s", os.path.basename(filename))
+        extension = os.path.splitext(filename)[1].lower()
+        if extension == ".xlsx":
+            source_rows = get_bird_workbook_rows(filename)
+        else:
+            source_rows = get_bird_csv_rows(filename)
+
+        for row in source_rows:
+            observed_date_raw = get_row_value(row, BIRD_DATE_COLUMNS)
+            bird_species_value = get_cell_value(row, BIRD_SPECIES_COLUMNS)
+            if observed_date_raw is None or not bird_species_value:
+                continue
+            public_species_name = normalise_bird_species(bird_species_value)
+            if not public_species_name:
+                continue
+
+            if isinstance(observed_date_raw, datetime):
+                record_day = observed_date_raw.date()
+            elif isinstance(observed_date_raw, date):
+                record_day = observed_date_raw
+            else:
+                record_day = parse_datetime_value(
+                    str(observed_date_raw).strip(),
+                    BIRD_DATE_FMTS,
+                    "bird observation date",
+                ).date()
+
+            observations.append((record_day, public_species_name))
+            bird_species_names.add(public_species_name)
+
+    LOGGER.info(
+        "loaded %d bird observations across %d public bird species",
+        len(observations),
+        len(bird_species_names),
+    )
+    return observations, sorted(bird_species_names)
+
+
+def add_dated_species_counts(
+    record_day,
+    species_counts,
+    weekly_counts,
+    yearly_week_counts,
+    dated_rows,
+    years,
+    year_week_ranges,
+):
+    dated_rows.append((record_day, species_counts))
+    years.add(record_day.year)
+
+    week_start = record_day.fromordinal(record_day.toordinal() - record_day.weekday())
+    add_species_counts(weekly_counts[week_start], species_counts)
+
+    week_index = record_day.isocalendar()[1]
+    year_week_range = year_week_ranges[record_day.year]
+    if year_week_range["min"] is None or week_index < year_week_range["min"]:
+        year_week_range["min"] = week_index
+    if year_week_range["max"] is None or week_index > year_week_range["max"]:
+        year_week_range["max"] = week_index
+    for species_name, value in species_counts.items():
+        yearly_week_counts[species_name][record_day.year][week_index] += value
+
+
 def load_publish_data(path):
     annual_files = get_annual_files(path)
     LOGGER.info("reading %d annual files", len(annual_files))
 
-    weekly_counts = defaultdict(blank_species_counts)
+    bird_observations, bird_species_names = load_bird_observations()
+    species_definitions = build_species_definitions(bird_species_names)
+    site_species = [definition["key"] for definition in species_definitions]
+
+    weekly_counts = defaultdict(lambda: blank_species_counts(site_species))
     yearly_week_counts = {
-        species_name: defaultdict(lambda: defaultdict(int)) for species_name in SITE_SPECIES
+        species_name: defaultdict(lambda: defaultdict(int)) for species_name in site_species
     }
     dated_rows = []
     years = set()
@@ -235,26 +438,40 @@ def load_publish_data(path):
                 record_day = record_dt.date()
                 strikes = int(float(row.get("strikes") or 0))
                 species = row.get("species_caught", SPECIES_NONE)
-                species_counts = get_site_species_counts(species, strikes)
-                dated_rows.append((record_day, species_counts))
+                species_counts = get_site_species_counts(species, strikes, site_species)
 
-                years.add(record_day.year)
                 if first_date is None or record_day < first_date:
                     first_date = record_day
                 if last_date is None or record_day > last_date:
                     last_date = record_day
 
-                week_start = record_day.fromordinal(record_day.toordinal() - record_day.weekday())
-                add_species_counts(weekly_counts[week_start], species_counts)
+                add_dated_species_counts(
+                    record_day,
+                    species_counts,
+                    weekly_counts,
+                    yearly_week_counts,
+                    dated_rows,
+                    years,
+                    year_week_ranges,
+                )
 
-                week_index = record_day.isocalendar()[1]
-                year_week_range = year_week_ranges[record_day.year]
-                if year_week_range["min"] is None or week_index < year_week_range["min"]:
-                    year_week_range["min"] = week_index
-                if year_week_range["max"] is None or week_index > year_week_range["max"]:
-                    year_week_range["max"] = week_index
-                for species_name, value in species_counts.items():
-                    yearly_week_counts[species_name][record_day.year][week_index] += value
+    for record_day, bird_species_name in bird_observations:
+        row_count += 1
+        species_counts = blank_species_counts(site_species)
+        species_counts[bird_species_name] = 1
+        if first_date is None or record_day < first_date:
+            first_date = record_day
+        if last_date is None or record_day > last_date:
+            last_date = record_day
+        add_dated_species_counts(
+            record_day,
+            species_counts,
+            weekly_counts,
+            yearly_week_counts,
+            dated_rows,
+            years,
+            year_week_ranges,
+        )
 
     if row_count == 0:
         raise ValueError("no rows found in annual csv files")
@@ -263,6 +480,8 @@ def load_publish_data(path):
     return {
         "annual_files": annual_files,
         "project_name": project_name,
+        "species_definitions": species_definitions,
+        "site_species": site_species,
         "weekly_counts": weekly_counts,
         "yearly_week_counts": yearly_week_counts,
         "dated_rows": dated_rows,
@@ -270,6 +489,7 @@ def load_publish_data(path):
         "year_week_ranges": dict(year_week_ranges),
         "first_date": first_date,
         "last_date": last_date,
+        "includes_bird_sightings": bool(bird_observations),
     }
 
 
@@ -277,6 +497,13 @@ def build_metadata(publish_data, site_project_config):
     configured_project_name = (site_project_config.get("project_name") or "").strip()
     project_name = configured_project_name or publish_data["project_name"]
     about = resolve_about_content(site_project_config.get("about") or {})
+    source = {
+        "project": project_name,
+        "published_from": "data/published/annual/all_project_data_*.csv",
+    }
+    if publish_data["includes_bird_sightings"]:
+        source["additional_private_sources"] = list(DEFAULT_BIRD_SOURCE_GLOBS)
+
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
@@ -284,15 +511,13 @@ def build_metadata(publish_data, site_project_config):
             "name": project_name,
             "about": about,
         },
-        "source": {
-            "project": project_name,
-            "published_from": "data/published/annual/all_project_data_*.csv",
-        },
+        "source": source,
         "defaults": {
             "species": SPECIES_COLLECTION_RAT,
             "period": DEFAULT_PERIOD_KEY,
         },
-        "species": SITE_SPECIES,
+        "species": publish_data["site_species"],
+        "species_definitions": publish_data["species_definitions"],
         "years": publish_data["years"],
         "periods": build_period_definitions(publish_data["years"]),
         "date_range": {
@@ -300,6 +525,7 @@ def build_metadata(publish_data, site_project_config):
             "end": publish_data["last_date"].isoformat(),
         },
         "notes": {
+            "includes_bird_sightings": publish_data["includes_bird_sightings"],
             "includes_overwritten_rows": False,
             "includes_invalid_rows": False,
         },
@@ -334,7 +560,7 @@ def build_yearly_comparison_json(publish_data):
     latest_year = publish_data["last_date"].year
 
     series = {}
-    for species_name in SITE_SPECIES:
+    for species_name in publish_data["site_species"]:
         series[species_name] = {}
         for year in publish_data["years"]:
             week_counts = publish_data["yearly_week_counts"][species_name].get(year, {})
@@ -366,16 +592,16 @@ def trim_trailing_zero_weeks(year_series):
     return result
 
 
-def build_rolling_period_summary(rows, max_date, months):
+def build_rolling_period_summary(rows, max_date, months, site_species):
     current_start = shift_months(max_date, -months)
     previous_start = shift_months(current_start, -12)
     previous_end = shift_months(max_date, -12)
 
-    current_totals = get_period_totals(rows, current_start, max_date)
-    previous_totals = get_period_totals(rows, previous_start, previous_end)
+    current_totals = get_period_totals(rows, current_start, max_date, site_species)
+    previous_totals = get_period_totals(rows, previous_start, previous_end, site_species)
     return {
         "species_totals": current_totals,
-        "trend": get_trend(current_totals, previous_totals),
+        "trend": get_trend(current_totals, previous_totals, site_species),
         "trend_context": {
             "current_period": {
                 "start": current_start.isoformat(),
@@ -394,6 +620,7 @@ def build_rolling_period_summary(rows, max_date, months):
 def build_summary_json(publish_data):
     max_date = publish_data["last_date"]
     latest_year = publish_data["last_date"].year
+    site_species = publish_data["site_species"]
 
     periods = {}
     for period_key, month_count in ROLLING_PERIOD_MONTHS:
@@ -401,12 +628,13 @@ def build_summary_json(publish_data):
             publish_data["dated_rows"],
             max_date,
             month_count,
+            site_species,
         )
 
     for year in publish_data["years"]:
         year_start = date(year, 1, 1)
         year_end = date(year, 12, 31)
-        year_totals = get_period_totals(publish_data["dated_rows"], year_start, year_end)
+        year_totals = get_period_totals(publish_data["dated_rows"], year_start, year_end, site_species)
         periods[str(year)] = {
             "species_totals": year_totals,
         }
@@ -420,13 +648,13 @@ def build_summary_json(publish_data):
                 previous_year_end = date(previous_year, 12, 31)
                 current_year_end = year_end
             previous_year_totals = get_period_totals(
-                publish_data["dated_rows"], previous_year_start, previous_year_end
+                publish_data["dated_rows"], previous_year_start, previous_year_end, site_species
             )
             current_year_totals = get_period_totals(
-                publish_data["dated_rows"], year_start, current_year_end
+                publish_data["dated_rows"], year_start, current_year_end, site_species
             )
             periods[str(year)]["species_totals"] = current_year_totals
-            periods[str(year)]["trend"] = get_trend(current_year_totals, previous_year_totals)
+            periods[str(year)]["trend"] = get_trend(current_year_totals, previous_year_totals, site_species)
             periods[str(year)]["trend_context"] = {
                 "current_period": {
                     "start": year_start.isoformat(),

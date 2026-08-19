@@ -27,11 +27,21 @@ This file tracks the current plan for the trapping dashboard project.
 - The private development repo can now publish to the public repo using `PUBLIC_SITE_DEPLOY_TOKEN`, currently backed by a classic PAT from the `MarsdenValley` GitHub user.
 - The all-years comparison chart supports year toggles and expand or close behavior.
 - Summary trends now support year-on-year comparisons for annual periods and same-season comparisons for the rolling 6-month view.
+- The publish step can now optionally merge a private bird-sightings CSV export into the dashboard species options, starting with South Island Robin observations.
+- A dedicated `scripts/import/import_bird_sightings.py` script now exists for the Google Sheets API path and can write a private raw bird CSV for the publish step.
+- The species selector now distinguishes pest and non-pest species, displays `All Pest Species` for the pest aggregate, and displays `SI Robin` for South Island Robin.
 - The current dashboard layout, chart expansion behavior, and trend logic are good enough for review.
 
 ## Planned Work
 
-1. Investigate access to the separate bird-sightings data source and how to integrate bird sightings into the dashboard species options.
+1. Replace the current manual private `.xlsx` bird download with direct Google Sheets API access so the bird source can refresh into the publish path without a manual export step.
+   Implementation shape:
+   - create a dedicated bird import script under `scripts/import/import_bird_sightings.py`
+   - authenticate with a Google service account that has been granted access to the private sheet
+   - read a specific sheet range through the Google Sheets API `spreadsheets.values.get` JSON path
+   - write the fetched rows into a private raw CSV under `data/raw`
+   - keep publish logic in `scripts/publish/publish_to_json.py` and keep remote API access out of the publish step
+   - optionally allow the bird import script to run the publish step after a successful fetch
 2. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 
 ## Bird Data Notes
@@ -46,6 +56,9 @@ This file tracks the current plan for the trapping dashboard project.
 - Bird sightings fit the current species-selector and display model better than a separate dashboard section.
 - Bird data is expected to be sparse, so any charts or summaries need to handle low-volume observations cleanly.
 - Future implementation should use a private ingestion path and publish only filtered bird outputs.
+- The current temporary workflow uses a manually downloaded private `.xlsx` file under `data/raw`.
+- The current first implementation only publishes normalized South Island Robin observations when a private bird export file is present.
+- The preferred near-term improvement is to move from the manual workbook bridge to the new Google Sheets API importer.
 - See `docs/bird_data_source.md` for the current source contract and privacy rules.
 
 ## Later Analytics

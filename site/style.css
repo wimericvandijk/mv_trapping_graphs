@@ -275,8 +275,30 @@ select:focus {
 }
 
 .species-option.is-active {
-  background: rgba(44, 122, 93, 0.12);
-  border-color: rgba(44, 122, 93, 0.28);
+  background: linear-gradient(180deg, rgba(215, 231, 247, 0.96) 0%, rgba(199, 221, 244, 0.94) 100%);
+  border-color: rgba(47, 94, 144, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(47, 94, 144, 0.12);
+}
+
+.species-option.is-non-pest {
+  background: linear-gradient(90deg, rgba(76, 132, 97, 0.18) 0%, rgba(232, 245, 236, 0.94) 14%, rgba(242, 249, 244, 0.96) 100%);
+  border-color: rgba(76, 132, 97, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(76, 132, 97, 0.08);
+}
+
+.species-option.is-non-pest span {
+  color: #2f6d4f;
+  font-weight: 700;
+}
+
+.species-option.is-non-pest input {
+  accent-color: #4c8461;
+}
+
+.species-option.is-non-pest.is-active {
+  background: linear-gradient(180deg, rgba(215, 231, 247, 0.98) 0%, rgba(199, 221, 244, 0.96) 100%);
+  border-color: rgba(47, 94, 144, 0.48);
+  box-shadow: inset 0 0 0 1px rgba(47, 94, 144, 0.14);
 }
 
 .dashboard-content {

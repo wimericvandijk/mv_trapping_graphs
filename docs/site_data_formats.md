@@ -92,7 +92,28 @@ Format:
     "Mouse",
     "Possum",
     "Mustelid",
-    "All Species"
+    "All Species",
+    "South Island Robin"
+  ],
+  "species_definitions": [
+    {
+      "key": "Rat",
+      "label": "Rat",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "All Species",
+      "label": "All Pest Species",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "South Island Robin",
+      "label": "SI Robin",
+      "measure_noun": "observations",
+      "is_pest": false
+    }
   ],
   "years": [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
   "date_range": {
@@ -100,6 +121,7 @@ Format:
     "end": "2026-08-08"
   },
   "notes": {
+    "includes_bird_sightings": true,
     "includes_overwritten_rows": false,
     "includes_invalid_rows": false
   }
@@ -111,12 +133,15 @@ Notes:
 - `project.name` is the preferred site-facing display name.
 - `project.about` is available for a future project-information or about panel.
 - `source.project` remains the published source label for compatibility with existing consumers.
+- `species_definitions` lets the UI distinguish trap `catches` from bird `observations`.
+- `species_definitions.label` lets the UI show shorter labels such as `SI Robin`.
+- `species_definitions.is_pest` lets the UI distinguish pest and non-pest species in the selector.
 
 ## 2. weekly.json
 
 Purpose:
 
-- drives the main weekly catches chart for a selected species and period
+- drives the main weekly series chart for a selected species and period
 - also supports totals for the same filtered period
 
 Format:
@@ -145,7 +170,9 @@ Notes:
 
 - One row per week across the full dataset.
 - `Mustelid` is the combined total of stoat, weasel, and ferret.
-- `All Species` means all actual catches excluding `None` and `Unspecified`.
+- `All Species` is the internal key for the selector label `All Pest Species`.
+- `All Species` means all actual trap catches excluding `None` and `Unspecified`.
+- bird observations are kept in separate species series and are not folded into `All Species`.
 - The site filters the time window client-side using the ordered `metadata.periods` definitions, such as rolling 3, 6, or 12 month windows and single calendar years.
 
 ## 3. yearly_comparison.json
@@ -267,7 +294,15 @@ The site should expose these dashboard species groups:
 - `Mouse` = `Mouse`
 - `Possum` = `Possum`
 - `Mustelid` = `Stoat`, `Weasel`, `Ferret`
-- `All Species` = all actual catches excluding `None` and `Unspecified`
+- `All Species` = all actual pest catches excluding `None` and `Unspecified`, displayed in the UI as `All Pest Species`
+
+Optional bird observation species can be appended to the species list when a private bird export is available.
+
+Current first bird scope:
+
+- `South Island Robin` = normalized bird-sightings sheet values such as `South Island Robin`, `Toutouwai`, or `Robin`, displayed in the UI as `SI Robin`
+- bird observation species should use `observations` wording in UI summaries rather than `catches`
+- bird observation species should be marked as non-pest in metadata so the selector can style them differently
 
 ## First Publish Scope
 

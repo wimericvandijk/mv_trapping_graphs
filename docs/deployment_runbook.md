@@ -61,24 +61,22 @@ After replacing the token, verify all of these:
 - the public Pages URL still loads correctly
 - the old token is revoked only after the new token is proven
 
-## Tomorrow Morning Checklist
+## Ongoing Validation Checklist
 
-Use this checklist after the overnight scheduled workflow run and before making the private development repository private.
+Use this checklist for routine checks now that the development repository is private.
 
 1. Open the private development repository `wimericvandijk/mv_trapping_graphs`.
 2. Open `Actions`.
 3. Check the latest `Nightly Data Refresh` workflow run.
 4. Confirm the nightly workflow completed successfully.
-5. If the nightly workflow published new data, confirm the latest `Publish Static Site To Public Repo` workflow also completed successfully.
+5. If the nightly workflow published changed site output, confirm the latest `Publish Static Site To Public Repo` workflow also completed successfully.
 6. Open the public repository `MarsdenValleyTrappers/trapping_graphs`.
-7. Confirm a fresh automated commit appeared there if the nightly run produced changed site output.
+7. Confirm a fresh automated commit appeared there when the latest run produced changed site output.
 8. Open `https://marsdenvalleytrappers.github.io/trapping_graphs/`.
 9. Confirm the public site still loads correctly.
-10. If all of the above are good, change `wimericvandijk/mv_trapping_graphs` to private if that is still the plan.
-11. After changing it to private, run `Publish Static Site To Public Repo` manually once from the private repository.
-12. Confirm the manual publish still succeeds.
-13. Recheck `https://marsdenvalleytrappers.github.io/trapping_graphs/` after that manual publish.
-14. If any step fails, leave the repository public until the failure is understood.
+10. If you run `Publish Static Site To Public Repo` manually from the private repository, confirm it succeeds.
+11. Treat `No public site changes to publish` as an expected success result when the generated site files are unchanged.
+12. If any validation step fails, investigate before relying on the next scheduled publish.
 
 ## Troubleshooting
 
@@ -90,6 +88,12 @@ If the publish workflow fails after a token replacement:
 4. Check that `PUBLIC_SITE_REPO` is still `MarsdenValleyTrappers/trapping_graphs`.
 5. Check that `PUBLIC_SITE_BRANCH` is still `main`.
 6. Re-run the workflow manually and read the exact failed step.
+
+If the publish workflow succeeds after the repository is made private but shows `No public site changes to publish`:
+
+1. Treat that as a valid confirmation that cross-repository publish still has access.
+2. Confirm the public Pages URL still loads.
+3. Wait for the next run that produces changed site output to confirm an automated commit lands in the public repository.
 
 ## Calendar Reminder Suggestion
 

@@ -18,6 +18,8 @@ The project currently has a working transform and publish pipeline.
 - Writes detailed invalid review rows into `data/review/annual`.
 - Loads trap/species validation policy from `config/trap_species_rules.json`.
 - Publishes dashboard JSON files into `site/data` from the annual cleaned CSV files.
+- Can optionally merge a private bird-sightings export into the published dashboard JSON, currently using a manually downloaded private `.xlsx` workbook and starting with South Island Robin observations.
+- Includes a dedicated Google Sheets bird importer that can fetch a private sheet range into a raw CSV using a service account.
 - Reuses a shared script logging helper across script entry points.
 - Includes a working static dashboard in `site` with species navigation, an ordered rolling-period and year control, weekly bars, all-years comparison lines, chart expand or close controls, and a project-information panel.
 - Documents a privacy-first plan for future bird-sightings integration from a Google Sheet controlled by the project.
@@ -36,6 +38,10 @@ The main script for importing raw Trap.NZ CSV files is:
 
 - `scripts/import/import_trapnz_csv.py`
 
+The current bird import script is:
+
+- `scripts/import/import_bird_sightings.py`
+
 The main outputs from `scripts/publish/publish_to_json.py` are:
 
 - `site/data/metadata.json`
@@ -44,6 +50,14 @@ The main outputs from `scripts/publish/publish_to_json.py` are:
 - `site/data/summary.json`
 
 `metadata.json` now also carries public project information sourced from `config/site_project.json`, including markdown-backed about content from `docs/project_about.md`.
+
+When a private bird export exists at `data/raw/Observed Birds*.xlsx` or `data/raw/bird-sightings*.csv`, `metadata.json` can also include bird observation species definitions for the dashboard selector.
+
+The current dashboard metadata model also supports:
+
+- display labels that differ from underlying species keys, for example `SI Robin`
+- a pest versus non-pest marker so bird species can be styled differently in the selector
+- `All Pest Species` as the display label for the trap-catch aggregate, while bird observations remain separate from that aggregate
 
 `invalid_records.csv` currently records two review cases:
 
@@ -75,12 +89,18 @@ The current dashboard now supports these period options in order:
 - `Last 12 months`
 - calendar years from oldest to most recent available year
 
+The current species selector now distinguishes between:
+
+- pest species and the `All Pest Species` aggregate
+- non-pest bird species such as `SI Robin`, with a separate visual treatment
+
 The next major step is to refine dashboard behavior, visual polish, and analytics semantics rather than to create the first page from scratch.
 
 ## Main Files
 
 - `scripts/transform/annualise_csv.py`: active raw CSV ingestion and cleansing pipeline
 - `scripts/import/import_trapnz_csv.py`: Trap.NZ CSV importer using ignored local secrets or environment variables
+- `scripts/import/import_bird_sightings.py`: Google Sheets bird importer using a service account and private sheet range
 - `scripts/transform/process_cleansed_files.py`: stub for the later processed-data or parquet stage
 - `scripts/transform/domain_constants.py`: canonical species and trap type names shared by Python scripts
 - `scripts/publish/publish_to_json.py`: site JSON publisher from annual cleaned CSV files
@@ -105,10 +125,17 @@ Set up Trap.NZ import credentials first:
 
 The importer prefers environment variables when both are present. `config/secrets.json` is ignored by git and should never be committed.
 
+For the Google Sheets bird importer, use a project virtual environment with `google-auth` installed and provide these settings through `config/secrets.json`, environment variables, or command-line arguments:
+
+- `BIRD_GOOGLE_SERVICE_ACCOUNT_FILE`
+- `BIRD_SHEETS_SPREADSHEET_ID`
+- `BIRD_SHEETS_RANGE`
+
 From the repository root:
 
 ```powershell
 python scripts/import/import_trapnz_csv.py
+python scripts/import/import_bird_sightings.py --dry-run
 python scripts/transform/annualise_csv.py
 python scripts/publish/publish_to_json.py
 powershell -ExecutionPolicy Bypass -File scripts/publish/run_dashboard_server.ps1
@@ -122,6 +149,8 @@ python scripts/import/import_trapnz_csv.py --dry-run
 python scripts/import/import_trapnz_csv.py --no-import --merge-recent --publish
 python scripts/import/import_trapnz_csv.py -q all_records
 python scripts/import/import_trapnz_csv.py --merge-recent --publish
+python scripts/import/import_bird_sightings.py --dry-run
+python scripts/import/import_bird_sightings.py --publish
 ```
 
 Recommended scheduled refresh command:

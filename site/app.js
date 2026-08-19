@@ -115,6 +115,25 @@ function getPeriodSummary(periodKey) {
   return state.summary.periods[periodKey] || null;
 }
 
+function getSpeciesDefinition(species) {
+  return (state.metadata.species_definitions || []).find((definition) => definition.key === species) || null;
+}
+
+function getSpeciesLabel(species) {
+  const speciesDefinition = getSpeciesDefinition(species);
+  return speciesDefinition && speciesDefinition.label ? speciesDefinition.label : species;
+}
+
+function getSpeciesMeasureNoun(species) {
+  const speciesDefinition = getSpeciesDefinition(species);
+  return speciesDefinition && speciesDefinition.measure_noun ? speciesDefinition.measure_noun : "catches";
+}
+
+function isPestSpecies(species) {
+  const speciesDefinition = getSpeciesDefinition(species);
+  return !speciesDefinition || speciesDefinition.is_pest !== false;
+}
+
 function getPeakWeek(weeks, species) {
   let peakWeek = null;
   for (const week of weeks) {
@@ -131,10 +150,12 @@ function updateSummaryCards(species, periodKey, weeks) {
   const total = periodSummary ? periodSummary.species_totals[species] || 0 : 0;
   const trend = periodSummary && periodSummary.trend ? periodSummary.trend[species] : null;
   const peakWeek = getPeakWeek(weeks, species);
+  const speciesLabel = getSpeciesLabel(species);
+  const measureNoun = getSpeciesMeasureNoun(species);
   document.getElementById("summary-period-label").textContent = formatPeriodLabel(periodKey);
 
   document.getElementById("total-catches").textContent = total.toLocaleString();
-  document.getElementById("total-caption").textContent = `${species} catches in ${formatPeriodLabel(periodKey).toLowerCase()}`;
+  document.getElementById("total-caption").textContent = `${speciesLabel} ${measureNoun} in ${formatPeriodLabel(periodKey).toLowerCase()}`;
 
   document.getElementById("trend-delta").textContent = trend ? `${trend.delta > 0 ? "+" : ""}${trend.delta}` : "-";
   document.getElementById("trend-caption").textContent = trend
@@ -167,6 +188,7 @@ function buildWeeklyChart(species, weeks, periodKey) {
   const values = weeks.map((week) => week.species[species] || 0);
   const ctx = document.getElementById("weekly-chart");
   const barColor = getWeeklyChartColor(periodKey, weeks);
+  const speciesLabel = getSpeciesLabel(species);
 
   if (state.weeklyChart) {
     state.weeklyChart.destroy();
@@ -178,7 +200,7 @@ function buildWeeklyChart(species, weeks, periodKey) {
       labels,
       datasets: [
         {
-          label: species,
+          label: speciesLabel,
           data: values,
           backgroundColor: barColor,
           borderRadius: 10,
@@ -346,13 +368,14 @@ function renderYearButtons() {
 }
 
 function updateTitles(species, periodKey, weeks) {
-  document.getElementById("weekly-title").textContent = `${species} in ${formatPeriodLabel(periodKey)}`;
+  const speciesLabel = getSpeciesLabel(species);
+  document.getElementById("weekly-title").textContent = `${speciesLabel} in ${formatPeriodLabel(periodKey)}`;
   if (weeks.length > 0) {
     document.getElementById("weekly-subtitle").textContent = `${formatFriendlyDate(weeks[0].week_start)} to ${formatFriendlyDate(weeks[weeks.length - 1].week_end)}`;
   } else {
     document.getElementById("weekly-subtitle").textContent = "No data in selected period";
   }
-  document.getElementById("comparison-title").textContent = `${species} across all available years`;
+  document.getElementById("comparison-title").textContent = `${speciesLabel} across all available years`;
 }
 
 function renderDashboard() {
@@ -559,6 +582,9 @@ function populateFilters() {
   state.metadata.species.forEach((species) => {
     const label = document.createElement("label");
     label.className = `species-option${species === state.selectedSpecies ? " is-active" : ""}`;
+    if (!isPestSpecies(species)) {
+      label.classList.add("is-non-pest");
+    }
 
     const input = document.createElement("input");
     input.type = "radio";
@@ -567,7 +593,7 @@ function populateFilters() {
     input.checked = species === state.selectedSpecies;
 
     const text = document.createElement("span");
-    text.textContent = species;
+  text.textContent = getSpeciesLabel(species);
 
     input.addEventListener("change", () => {
       if (!input.checked) {

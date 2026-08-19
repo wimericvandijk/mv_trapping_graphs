@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-18T13:55:39Z",
+  "generated_at": "2026-08-19T04:15:32Z",
   "project": {
     "name": "Marsden Valley Trapping Group",
     "about": {
@@ -11,7 +11,11 @@
   },
   "source": {
     "project": "Marsden Valley Trapping Group",
-    "published_from": "data/published/annual/all_project_data_*.csv"
+    "published_from": "data/published/annual/all_project_data_*.csv",
+    "additional_private_sources": [
+      "../../data/raw/bird-sightings*.csv",
+      "../../data/raw/Observed Birds*.xlsx"
+    ]
   },
   "defaults": {
     "species": "Rat",
@@ -22,7 +26,46 @@
     "Mouse",
     "Possum",
     "Mustelid",
-    "All Species"
+    "All Species",
+    "South Island Robin"
+  ],
+  "species_definitions": [
+    {
+      "key": "Rat",
+      "label": "Rat",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "Mouse",
+      "label": "Mouse",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "Possum",
+      "label": "Possum",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "Mustelid",
+      "label": "Mustelid",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "All Species",
+      "label": "All Pest Species",
+      "measure_noun": "catches",
+      "is_pest": true
+    },
+    {
+      "key": "South Island Robin",
+      "label": "SI Robin",
+      "measure_noun": "observations",
+      "is_pest": false
+    }
   ],
   "years": [
     2019,
@@ -107,6 +150,7 @@
     "end": "2026-08-18"
   },
   "notes": {
+    "includes_bird_sightings": true,
     "includes_overwritten_rows": false,
     "includes_invalid_rows": false
   }
