@@ -44,6 +44,7 @@ This file tracks the current plan for the trapping dashboard project.
    - optionally allow the bird import script to run the publish step after a successful fetch
 2. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
 3. Investigate a less awkward git flow for automated site-data commits versus manual code changes on `main`, because the nightly refresh commits can force local rebases and make normal pushes brittle.
+4. Add source-specific stale-data tolerance in published metadata and site messaging, for example around 7 days for Trap.NZ data and 21 days for bird sightings, so slower-moving bird data does not make the whole dashboard look stale.
 
 ## Bird Data Notes
 
