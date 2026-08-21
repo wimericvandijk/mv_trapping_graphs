@@ -28,7 +28,7 @@ jobs:
       PUBLIC_SITE_DEPLOY_TOKEN: ${{ secrets.PUBLIC_SITE_DEPLOY_TOKEN }}
 
     steps:
-      - name: Check out private development repository
+      - name: Check out development repository
         uses: actions/checkout@v4
 
       - name: Validate publish configuration

@@ -22,7 +22,7 @@ This file tracks the current plan for the trapping dashboard project.
 - The weekly chart period selector now supports ordered rolling 3, 6, and 12 month options followed by available years.
 - The period selector has been restyled as a clearer clickable control.
 - A project-information panel is now available from a button in the page header, using public content from `config/site_project.json` and markdown content from `docs/project_about.md`.
-- A cross-repository publish workflow now exists for a private-development to public-site repository split and now republishes the public site from pushes to `main`.
+- A cross-repository publish workflow now exists for a development-repository to public-site repository split and now republishes the public site from pushes to `main`.
 - The public site is now published from `MarsdenValleyTrappers/trapping_graphs` at `https://marsdenvalleytrappers.github.io/trapping_graphs/`.
 - The private development repo can now publish to the public repo using `PUBLIC_SITE_DEPLOY_TOKEN`, currently backed by a classic PAT from the `MarsdenValley` GitHub user.
 - The all-years comparison chart supports year toggles and expand or close behavior.
@@ -43,6 +43,7 @@ This file tracks the current plan for the trapping dashboard project.
    - keep publish logic in `scripts/publish/publish_to_json.py` and keep remote API access out of the publish step
    - optionally allow the bird import script to run the publish step after a successful fetch
 2. Add a separate infrequent full Trap.NZ refresh workflow, perhaps every 3 months, scheduled separately from the nightly recent-refresh workflow, for example around 11:30 UTC.
+3. Investigate a less awkward git flow for automated site-data commits versus manual code changes on `main`, because the nightly refresh commits can force local rebases and make normal pushes brittle.
 
 ## Bird Data Notes
 
@@ -74,7 +75,7 @@ This file tracks the current plan for the trapping dashboard project.
 
 - The Word planning document is in `docs/Trapping_Dashboard_Project_Summary_v2.docx`.
 - Current public URL: `https://marsdenvalleytrappers.github.io/trapping_graphs/`
-- Earlier review URL: `https://wimericvandijk.github.io/mv_trapping_graphs/`
+- This repository should not publish its own GitHub Pages URL, including `https://wimericvandijk.github.io/mv_trapping_graphs/`.
 - The classic PAT previously used from another account can be revoked once `PUBLIC_SITE_DEPLOY_TOKEN` has been replaced and a publish run has succeeded.
 - The current implementation is ahead of the original plan in one area: the cleansing rules and invalid-record review flow are already in place.
 - The biggest missing pieces are now dashboard polish and the next layer of analytics rather than the initial data publish or page scaffold.

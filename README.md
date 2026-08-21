@@ -175,12 +175,15 @@ The current Python import, transform, and publish scripts are intentionally sing
 
 The repository now includes a nightly refresh workflow at `.github/workflows/nightly-update.yml`.
 
-It also now includes an optional cross-repository publish workflow at `.github/workflows/publish-public-site.yml` for a private-development to public-site setup.
+It also now includes a cross-repository publish workflow at `.github/workflows/publish-public-site.yml` so this repository can stay separate from the public site repository.
 
 It requires these repository secrets:
 
 - `TRAPNZ_API_KEY`
 - `TRAPNZ_PROJECT_ID`
+- `BIRD_GOOGLE_SERVICE_ACCOUNT_JSON` for the GitHub Actions bird import service account body
+- `BIRD_SHEETS_SPREADSHEET_ID` for the private Google Sheet source
+- `BIRD_SHEETS_RANGE` for the private Google Sheet A1 range
 - `PUBLIC_SITE_DEPLOY_TOKEN` for cross-repository publish to a public site repo
 
 It requires these repository variables for cross-repository publish:
@@ -192,26 +195,28 @@ Workflow behavior:
 
 - On a runner that already has cached detailed annual review data, it uses the recent-only API refresh path.
 - On a cache miss, it bootstraps by importing `all_records`, then runs the full transform and publish steps.
+- It then attempts the Google Sheets bird import, but treats missing placeholder credentials or import failures as non-fatal and records a workflow warning instead of failing the whole nightly refresh.
 - It commits refreshed `site/data/metadata.json`, `site/data/weekly.json`, `site/data/yearly_comparison.json`, and `site/data/summary.json` back to `main`.
-- The existing Pages deploy workflow then publishes the updated site from that push.
-- The optional cross-repository publish workflow can instead copy the built `site/` folder into a separate public repository owned by an organisation or another GitHub account.
+- This repository no longer deploys its own GitHub Pages site.
+- The cross-repository publish workflow copies the built `site/` folder into a separate public repository owned by an organisation or another GitHub account.
 - It now runs automatically on pushes to `main`, also runs after a successful `Nightly Data Refresh` workflow, and can still be run manually with `workflow_dispatch`.
 
-Recommended private-development to public-site setup:
+Recommended development-repository to public-site setup:
 
-1. Keep this repository as the private development repository.
+1. Use this repository as the development repository.
 2. Use the separate public repository `MarsdenValleyTrappers/trapping_graphs` to hold only the published static site.
 3. Create a classic personal access token from the `MarsdenValley` GitHub user or another dedicated automation account that can write to the public repository.
-4. Store that token in this private development repository as `PUBLIC_SITE_DEPLOY_TOKEN`.
+4. Store that token in this repository as `PUBLIC_SITE_DEPLOY_TOKEN`.
 5. Set `PUBLIC_SITE_REPO` to `MarsdenValleyTrappers/trapping_graphs` and `PUBLIC_SITE_BRANCH` to the target branch, usually `main`.
 6. Enable GitHub Pages in the public repository using the published branch root.
-7. The `Publish Static Site To Public Repo` workflow can be run manually for testing and now also runs automatically on pushes to `main`.
+7. Keep GitHub Pages disabled in this repository, even if this repository is public.
+8. The `Publish Static Site To Public Repo` workflow can be run manually for testing and now also runs automatically on pushes to `main`.
 
 Current working deployment setup:
 
-- the private development repository runs the publish workflow
+- this repository runs the publish workflow
 - `PUBLIC_SITE_DEPLOY_TOKEN` is currently a classic PAT created from the `MarsdenValley` GitHub user
-- that secret is stored in the private repository and is used to push the built `site/` output into `MarsdenValleyTrappers/trapping_graphs`
+- that secret is stored in this repository and is used to push the built `site/` output into `MarsdenValleyTrappers/trapping_graphs`
 
 Step-by-step deployment and token-rotation guidance is documented in `docs/deployment_runbook.md`.
 
@@ -226,8 +231,8 @@ Troubleshooting:
 - If the nightly workflow fails with authentication errors, verify that the repository secrets `TRAPNZ_API_KEY` and `TRAPNZ_PROJECT_ID` are present and current.
 - If the recent-only refresh path fails on a new runner, the workflow should fall back to a full bootstrap import on cache miss. Check whether the `data/review/annual` cache restored successfully.
 - If the workflow runs but commits no changes, inspect the workflow logs to confirm whether Trap.NZ returned new data and whether the published JSON files actually changed.
-- If the workflow commits updated site data but the site does not change, check the `Deploy Dashboard To GitHub Pages` workflow to confirm the subsequent Pages deployment succeeded.
-- If the cross-repository publish workflow fails before cloning, verify `PUBLIC_SITE_REPO` and `PUBLIC_SITE_DEPLOY_TOKEN` are configured in the private repository.
+- If the workflow commits updated site data but the public site does not change, check the `Publish Static Site To Public Repo` workflow and then confirm the target public repository Pages deployment is healthy.
+- If the cross-repository publish workflow fails before cloning, verify `PUBLIC_SITE_REPO` and `PUBLIC_SITE_DEPLOY_TOKEN` are configured in this repository.
 - If the cross-repository publish workflow fails to push, verify that the token can write to the target public repository and that the target branch already exists.
 
 ## Review URL
@@ -236,11 +241,9 @@ The current public site is available at:
 
 - `https://marsdenvalleytrappers.github.io/trapping_graphs/`
 
-The earlier personal review URL was:
+This repository is not intended to publish its own Pages site, including `https://wimericvandijk.github.io/mv_trapping_graphs/`.
 
-- `https://wimericvandijk.github.io/mv_trapping_graphs/`
-
-The organisation-owned public site is now published from `MarsdenValleyTrappers/trapping_graphs` on GitHub Pages.
+The organisation-owned public site is published from `MarsdenValleyTrappers/trapping_graphs` on GitHub Pages.
 
 ## Intended Direction
 

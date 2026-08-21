@@ -330,7 +330,7 @@ def get_bird_source_files(path_globs=DEFAULT_BIRD_SOURCE_GLOBS):
     bird_files = sorted({os.path.normpath(filename) for filename in bird_files})
     if not bird_files:
         LOGGER.info("no bird-sightings source files found for %s", ", ".join(path_globs))
-        return [], []
+        return []
 
     return bird_files
 
