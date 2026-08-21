@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-21T20:08:44Z",
+  "generated_at": "2026-08-21T20:27:48Z",
   "project": {
     "name": "Marsden Valley Trapping Group",
     "about": {
@@ -11,11 +11,7 @@
   },
   "source": {
     "project": "Marsden Valley Trapping Group",
-    "published_from": "data/published/annual/all_project_data_*.csv",
-    "additional_private_sources": [
-      "../../data/raw/bird-sightings*.csv",
-      "../../data/raw/Observed Birds*.xlsx"
-    ]
+    "published_from": "data/published/annual/all_project_data_*.csv"
   },
   "defaults": {
     "species": "Rat",
@@ -26,8 +22,7 @@
     "Mouse",
     "Possum",
     "Mustelid",
-    "All Species",
-    "South Island Robin"
+    "All Species"
   ],
   "species_definitions": [
     {
@@ -59,12 +54,6 @@
       "label": "All Pest Species",
       "measure_noun": "catches",
       "is_pest": true
-    },
-    {
-      "key": "South Island Robin",
-      "label": "SI Robin",
-      "measure_noun": "observations",
-      "is_pest": false
     }
   ],
   "years": [
@@ -147,10 +136,10 @@
   ],
   "date_range": {
     "start": "2019-09-13",
-    "end": "2026-08-18"
+    "end": "2026-08-20"
   },
   "notes": {
-    "includes_bird_sightings": true,
+    "includes_bird_sightings": false,
     "includes_overwritten_rows": false,
     "includes_invalid_rows": false
   }
