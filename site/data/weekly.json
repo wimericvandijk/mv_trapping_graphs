@@ -4266,11 +4266,11 @@
       "week_end": "2026-08-23",
       "year": 2026,
       "species": {
-        "Rat": 2,
-        "Mouse": 11,
+        "Rat": 3,
+        "Mouse": 15,
         "Possum": 1,
         "Mustelid": 0,
-        "All Species": 14
+        "All Species": 19
       }
     }
   ]
